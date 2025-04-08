@@ -5,9 +5,27 @@ import { useNavigate, Link } from "react-router-dom"; // Import useNavigate and 
 
 // Default job data and categories
 const defaultJobs = [
-  { title: "UI/UX Design", description: "A short summary of the job.", deadline: "2023-11-30", status: "Open", category: "Design" },
-  { title: "Business Analyst", description: "Analyze business requirements.", deadline: "2023-12-15", status: "Closed", category: "Business" },
-  { title: "Data Scientist", description: "Analyze data trends and build models.", deadline: "2023-12-20", status: "Open", category: "Informatics" },
+  {
+    title: "UI/UX Design",
+    description: "A short summary of the job.",
+    deadline: "2023-11-30",
+    status: "Open",
+    category: "Design",
+  },
+  {
+    title: "Business Analyst",
+    description: "Analyze business requirements.",
+    deadline: "2023-12-15",
+    status: "Closed",
+    category: "Business",
+  },
+  {
+    title: "Data Scientist",
+    description: "Analyze data trends and build models.",
+    deadline: "2023-12-20",
+    status: "Open",
+    category: "Informatics",
+  },
   ...Array.from({ length: 20 }, (_, i) => ({
     title: `Job Title ${i + 1}`,
     description: `Description for job ${i + 1}.`,
@@ -22,10 +40,12 @@ const categories = ["View all", "Informatics", "Business", "Design"];
 // JobCard Component
 function JobCard({ job }) {
   const statusStyles =
-    job.status === "Open" ? "text-green-700 bg-green-100" : "text-red-700 bg-red-100";
+    job.status === "Open"
+      ? "text-green-700 bg-green-100"
+      : "text-red-700 bg-red-100";
 
   return (
-    <div className="max-w-sm bg-white shadow-lg rounded-lg p-4 border border-gray-200 transition-transform transform hover:scale-105 hover:shadow-xl relative">
+    <div className="max-w-sm bg-white  rounded-lg p-4 border border-gray-200 transition-transform transform hover:scale-105 hover:shadow-xl relative">
       <div className="flex justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-purple-600 rounded-lg"></div>
@@ -39,10 +59,13 @@ function JobCard({ job }) {
       </div>
       <p className="text-sm text-gray-600 mt-2">{job.description}</p>
       <p className="text-sm text-gray-600 mt-2">
-        <span className="font-medium text-gray-800">Deadline:</span> {job.deadline}
+        <span className="font-medium text-gray-800">Deadline:</span>{" "}
+        {job.deadline}
       </p>
       <div className="mt-3">
-        <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${statusStyles}`}>
+        <span
+          className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${statusStyles}`}
+        >
           {job.status}
         </span>
       </div>
@@ -71,14 +94,19 @@ export default function JobListing() {
       category === "View all"
         ? defaultJobs
         : defaultJobs.filter((job) =>
-            category === "Informatics" ? job.category === "Informatics" : job.title.includes(category)
+            category === "Informatics"
+              ? job.category === "Informatics"
+              : job.title.includes(category)
           )
     );
   };
 
   return (
-    <div className="p-6 bg-white min-h-screen flex flex-col" style={{ marginLeft: "0px" }}>
-      <div className="w-full max-w-full mx-auto shadow-lg rounded-lg p-4 flex-grow">
+    <div
+      className="p-6 bg-white min-h-screen flex flex-col"
+      style={{ marginLeft: "0px" }}
+    >
+      <div className="w-full max-w-full mx-auto  rounded-lg p-4 flex-grow">
         {/* Header */}
         <div className="flex flex-wrap justify-between items-center mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold">Jobs</h1>
