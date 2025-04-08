@@ -5,6 +5,8 @@ import { supabase } from "../../../SupaBase";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import AuthBanner from "../../../assets/authimg.png";
 import "./index.css";
+import { message } from "antd"; // Import Ant Design's message component
+import { SmileOutlined, FrownOutlined } from "@ant-design/icons"; // Import icons
 
 const schema = yup.object({
   email: yup.string().email("Invalid email").required("Email is required"),
@@ -30,10 +32,26 @@ export default function Login() {
 
     if (error) {
       console.error("Error signing in:", error.message);
-      alert("Login failed: " + error.message);
+      message.open({
+        type: "error",
+        content: "Login failed: " + error.message,
+        icon: <FrownOutlined style={{ color: "red" }} />, // Add custom icon
+        duration: 3, // Display for 3 seconds
+      });
     } else {
       console.log("Login successful!");
-      alert("Login successful!");
+      message.open({
+        type: "success",
+        content: "Login successful!",
+        icon: <SmileOutlined style={{ color: "green" }} />, // Add custom icon
+        duration: 3, // Display for 3 seconds
+      });
+      message.open({
+        type: "info",
+        content: "✨ Welcome back! ✨",
+        icon: <SmileOutlined style={{ color: "blue" }} />, // Add custom icon
+        duration: 3, // Display for 3 seconds
+      });
       localStorage.setItem("userEmail", email); // Store email in local storage
       navigate("/dashboard");
     }
