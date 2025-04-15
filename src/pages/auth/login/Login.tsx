@@ -35,7 +35,7 @@ export default function Login() {
       message.open({
         type: "error",
         content: "Login failed: " + error.message,
-        icon: <FrownOutlined style={{ color: "red" }} />, // Add custom icon
+        icon: <FrownOutlined style={{ color: "red" }} />, 
         duration: 3, // Display for 3 seconds
       });
     } else {
@@ -43,16 +43,16 @@ export default function Login() {
       message.open({
         type: "success",
         content: "Login successful!",
-        icon: <SmileOutlined style={{ color: "green" }} />, // Add custom icon
+        icon: <SmileOutlined style={{ color: "green" }} />, 
         duration: 3, // Display for 3 seconds
       });
       message.open({
         type: "info",
         content: "✨ Welcome back! ✨",
-        icon: <SmileOutlined style={{ color: "blue" }} />, // Add custom icon
+        icon: <SmileOutlined style={{ color: "blue" }} />, 
         duration: 3, // Display for 3 seconds
       });
-      localStorage.setItem("userEmail", email); // Store email in local storage
+      localStorage.setItem("userEmail", email); 
       navigate("/dashboard");
     }
   };
@@ -128,15 +128,33 @@ export default function Login() {
             </a>
           </p>
         </div>
-        <div className="mt-10 text-center">
-          <p className="text-gray-500">
-            Lorem Ipsum is simply dummy text of the printing and typesetting
-            industry. Lorem Ipsum has been the industry’s standard.
+      </div>
+      <div className="flex-1 relative min-h-screen">
+        <img
+          src={AuthBanner}
+          alt="Auth Banner"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4">
+          <h1 className="text-6xl font-bold text-white text-center leading-tight">
+            Lorem Ipsum is <br /> simply dummy text
+          </h1>
+          <p className="text-lg text-white text-center mt-4 max-w-2xl">
+            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard.
           </p>
-          <p className="mt-4 text-gray-700 font-semibold">Join 40,000+ users</p>
+        </div>
+        <div className="absolute bottom-20 flex items-center justify-center w-full z-10">
+          <div className="flex items-center space-x-2">
+            <span className="w-6 h-6 bg-purple-300 rounded-full"></span>
+            <span className="w-6 h-6 bg-gray-400 rounded-full"></span>
+            <span className="w-6 h-6 bg-yellow-400 rounded-full"></span>
+            <span className="w-6 h-6 bg-blue-300 rounded-full"></span>
+          </div>
+          <p className="ml-4 text-white text-lg font-semibold">
+            Join 40,000+ users
+          </p>
         </div>
       </div>
-      <div className="flex-1 background-banner min-h-screen">{/* TODO */}</div>
     </div>
   );
 }

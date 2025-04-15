@@ -26,6 +26,9 @@ const Home = () => {
   const [selectAll, setSelectAll] = useState(false); 
   // Tracks whether the "Select All" checkbox is checked.
 
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false); // Tracks dialog visibility
+  const [rowToDelete, setRowToDelete] = useState(null); // Tracks the row to delete
+
   const handleSearch = (e) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
@@ -60,8 +63,20 @@ const Home = () => {
     setData(allData.slice((currentPage - 1) * 10, currentPage * 10)); // Update current page data
   };
 
-  const deleteRow = (key) => {
-    setData((prevData) => prevData.filter((item) => item.key !== key));
+  const confirmDelete = (key) => {
+    setRowToDelete(key);
+    setShowDeleteDialog(true);
+  };
+
+  const handleDelete = () => {
+    setData((prevData) => prevData.filter((item) => item.key !== rowToDelete));
+    setShowDeleteDialog(false);
+    setRowToDelete(null);
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteDialog(false);
+    setRowToDelete(null);
   };
 
   return (
@@ -147,7 +162,7 @@ const Home = () => {
                       </button>
                       <button
                         className="p-2 bg-gray-100 rounded-lg hover:bg-purple-200 hover:text-purple-700 hover:shadow-lg transition-all"
-                        onClick={() => deleteRow(item.key)}
+                        onClick={() => confirmDelete(item.key)}
                       >
                         <X size={16} className="text-gray-600" />
                       </button>
@@ -165,6 +180,37 @@ const Home = () => {
           </table>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteDialog && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <X size={20} className="text-red-600" />
+              </div>
+              <h2 className="text-lg font-semibold">Are you sure?</h2>
+            </div>
+            <p className="text-gray-500 text-sm mb-6">
+              Are you sure you want to delete this row? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-4">
+              <button
+                className="px-4 py-2 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 transition-all"
+                onClick={cancelDelete}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all"
+                onClick={handleDelete}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <footer className="mt-4 flex justify-between items-center">
         <button
