@@ -23,7 +23,7 @@ const Sidebar = () => {
         <ul className="space-y-4">
           <li className="flex items-center space-x-3 text-gray-700 hover:text-white hover:bg-purple-200 p-2 rounded-lg cursor-pointer active:bg-purple-100 active:text-black"> {/* Added active state */}
             <Home size={20} className="active:text-black" /> {/* Added active:text-black */}
-          <a href="/home">House</a>
+          <a href="/home">Home</a>
           </li>
           <li className="flex items-center space-x-3 text-gray-700 hover:text-white hover:bg-purple-200 p-2 rounded-lg cursor-pointer relative active:bg-purple-100 active:text-black"> {/* Added active state */}
             <ClipboardList size={20} className="active:text-black" /> {/* Added active:text-black */}
