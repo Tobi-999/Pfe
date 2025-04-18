@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Search, CloudDownload, Check, X } from "lucide-react";
+import { Search, CloudDownload, Check, X, Trash2 } from "lucide-react";
+import PptxGenJS from "pptxgenjs"; // Import pptxgenjs
 
 const Home = () => {
   const allData = Array.from({ length: 100 }, (_, index) => ({
@@ -28,6 +29,9 @@ const Home = () => {
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false); // Tracks dialog visibility
   const [rowToDelete, setRowToDelete] = useState(null); // Tracks the row to delete
+
+  const [showApproveDialog, setShowApproveDialog] = useState(false); // Tracks approve dialog visibility
+  const [rowToApprove, setRowToApprove] = useState(null); // Tracks the row to approve
 
   const handleSearch = (e) => {
     const value = e.target.value.toLowerCase();
@@ -79,11 +83,92 @@ const Home = () => {
     setRowToDelete(null);
   };
 
+  const confirmApprove = (key) => {
+    setRowToApprove(key);
+    setShowApproveDialog(true);
+  };
+
+  const handleApprove = () => {
+    setData((prevData) =>
+      prevData.map((item) =>
+        item.key === rowToApprove ? { ...item, status: "Approved" } : item
+      )
+    );
+    setShowApproveDialog(false);
+    setRowToApprove(null);
+  };
+
+  const cancelApprove = () => {
+    setShowApproveDialog(false);
+    setRowToApprove(null);
+  };
+
+  const exportToPowerPoint = () => {
+    const pptx = new PptxGenJS();
+    const slide = pptx.addSlide();
+
+    slide.addText("Leaves Table", {
+      x: 0.5,
+      y: 0.3,
+      fontSize: 18,
+      bold: true,
+      color: "363636",
+    });
+
+    const tableData = [
+      ["Name", "Leave Type", "Start Date", "End Date", "Duration", "Status"], // Table headers
+      ...allData.map((item) => [
+        item.name,
+        item.leaveType,
+        item.startDate,
+        item.endDate,
+        item.duration,
+        item.status,
+      ]),
+    ];
+
+    slide.addTable(tableData, {
+      x: 0.5,
+      y: 1,
+      w: 9,
+      border: { pt: 1, color: "CFCFCF" },
+      fill: "F7F7F7",
+      fontSize: 10,
+      color: "363636",
+      valign: "middle",
+      align: "center",
+      rowH: 0.3,
+      colW: [2, 2, 1.5, 1.5, 1, 1.5], // Column widths
+      autoPage: true, // Automatically add pages if content overflows
+      margin: 0.1,
+      tableHeaderProps: {
+        fill: "FF5733", // Vibrant orange header background
+        color: "FFFFFF", // White header text
+        bold: true,
+        fontSize: 12,
+      },
+      tableRowProps: {
+        fill: "FFC300", // Bright yellow for default rows
+      },
+      tableRowEvenProps: {
+        fill: "DAF7A6", 
+      },
+      tableCellProps: {
+        border: { pt: 0.5, color: "FFFFFF" }, 
+      },
+    });
+
+    pptx.writeFile("LeavesTable.pptx");
+  };
+
   return (
     <div className="absolute inset-0 ml-64 p-6 bg-white rounded-lg shadow-md">
       <header className="flex justify-between items-center mb-4">
         <h1 className="text-xl font-semibold">Home</h1>
-        <button className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg text-gray-700 hover:bg-purple-200 hover:text-purple-700 hover:shadow-lg transition-all">
+        <button
+          className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg text-gray-700 hover:bg-purple-200 hover:text-purple-700 hover:shadow-lg transition-all"
+          onClick={exportToPowerPoint} // Attach export function
+        >
           <CloudDownload size={16} /> Export
         </button>
       </header>
@@ -107,7 +192,11 @@ const Home = () => {
       <div className="mt-4 border rounded-lg overflow-hidden">
         <div className="overflow-y-auto max-h-[550px]">
           <table className="w-full text-sm text-left">
-            <thead className="bg-gray-100 text-gray-600 sticky top-0">
+            <thead
+              className={`sticky top-0 ${
+                selectAll ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
+              } transition-colors`}
+            >
               <tr>
                 <th className="px-4 py-3">
                   <input
@@ -123,7 +212,20 @@ const Home = () => {
                 <th className="px-4 py-3">End Date</th>
                 <th className="px-4 py-3">Duration</th>
                 <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Actions</th>
+                <th className="px-4 py-3 flex justify-between items-center">
+                  Actions
+                  {selectAll && (
+                    <button
+                      className="p-2 rounded-lg hover:bg-green-200 hover:text-green-800 transition-all"
+                      onClick={() => {
+                        setData((prevData) => prevData.filter((item) => !item.isChecked));
+                        setSelectAll(false);
+                      }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -157,7 +259,10 @@ const Home = () => {
                       {item.status}
                     </td>
                     <td className="px-4 py-3 flex gap-2">
-                      <button className="p-2 bg-purple-100 rounded-lg hover:bg-purple-200 hover:text-purple-700 hover:shadow-lg transition-all">
+                      <button
+                        className="p-2 bg-purple-100 rounded-lg hover:bg-purple-200 hover:text-purple-700 hover:shadow-lg transition-all"
+                        onClick={() => confirmApprove(item.key)}
+                      >
                         <Check size={16} className="text-purple-600" />
                       </button>
                       <button
@@ -206,6 +311,37 @@ const Home = () => {
                 onClick={handleDelete}
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Approve Confirmation Dialog */}
+      {showApproveDialog && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <Check size={20} className="text-green-600" />
+              </div>
+              <h2 className="text-lg font-semibold">Approve Request</h2>
+            </div>
+            <p className="text-gray-500 text-sm mb-6">
+              Are you sure you want to approve this request? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-4">
+              <button
+                className="px-4 py-2 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 transition-all"
+                onClick={cancelApprove}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all"
+                onClick={handleApprove}
+              >
+                Approve
               </button>
             </div>
           </div>

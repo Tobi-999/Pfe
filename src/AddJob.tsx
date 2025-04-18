@@ -1,42 +1,55 @@
-import { useState, useCallback, ChangeEvent } from "react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 import { UploadCloud, DownloadCloud, Search } from "lucide-react";
 
+// Define the validation schema using yup
+const schema = yup.object().shape({
+  jobName: yup.string().required("Job name is required"),
+  description: yup
+    .string()
+    .max(275, "Description must be at most 275 characters")
+    .required("Description is required"),
+  openSeats: yup
+    .number()
+    .typeError("Open seats must be a number")
+    .min(1, "Open seats must be at least 1")
+    .required("Number of open seats is required"),
+  avatar: yup
+    .mixed()
+    .test("fileSize", "File size is too large", (value) =>
+      value?.[0] ? value[0].size <= 800 * 400 : true
+    )
+    .test("fileType", "Unsupported file format", (value) =>
+      value?.[0]
+        ? ["image/jpeg", "image/png", "image/gif", "image/svg+xml"].includes(
+            value[0].type
+          )
+        : true
+    ),
+});
+
 export default function CreateJobForm() {
-  const [formData, setFormData] = useState({
-    jobName: "UI/UX design",
-    description: "Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum. Lorem Ipsum Lorem Ipsum Lorem Ipsum.",
-    openSeats: 23,
-    avatar: null,
-    isEditing: false
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      jobName: "",
+      description: "",
+      openSeats: "",
+      avatar: null,
+    },
   });
 
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const maxDescriptionLength = 275;
+  const previewUrl = watch("avatar") ? URL.createObjectURL(watch("avatar")[0]) : null;
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      const file = e.target.files[0];
-      setFormData(prev => ({ ...prev, avatar: file }));
-
-      const reader = new FileReader();
-      reader.onloadend = () => setPreviewUrl(reader.result as string);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const toggleEdit = () => {
-    setFormData(prev => ({ ...prev, isEditing: !prev.isEditing }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Form submitted:", formData);
-    setFormData(prev => ({ ...prev, isEditing: false }));
+  const onSubmit = (data: any) => {
+    console.log("Form submitted:", data);
   };
 
   return (
@@ -66,42 +79,48 @@ export default function CreateJobForm() {
             <button className="px-6 py-2 text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 rounded-md">
               Cancel
             </button>
-            <button className="px-6 py-2 text-sm text-white bg-purple-600 hover:bg-purple-700 rounded-md">
+            <button
+              form="jobForm"
+              type="submit"
+              className="px-6 py-2 text-sm text-white bg-purple-600 hover:bg-purple-700 rounded-md"
+            >
               Save
             </button>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form id="jobForm" onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           {/* Job Name Section */}
-          <div className="flex items-center gap-9">
-            <h2>job Name</h2>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-gray-700">Job Name</label>
             <input
-              name="jobName"
+              {...register("jobName")}
               type="text"
-              value={formData.jobName}
-              onChange={handleInputChange}
-              className="flex-1 text-base font-medium text-gray-900 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="text-base font-medium text-gray-900 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
+            {errors.jobName && (
+              <p className="text-sm text-red-500">{errors.jobName.message}</p>
+            )}
           </div>
 
           {/* Description Section */}
-          <div className="flex items-center gap-6">
+          <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-gray-700">Description</label>
             <textarea
-              name="description"
+              {...register("description")}
               rows={4}
-              value={formData.description}
-              onChange={handleInputChange}
               placeholder="Write a short description..."
-              className="flex-1 text-gray-700 border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+              className="text-gray-700 border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
             />
+            {errors.description && (
+              <p className="text-sm text-red-500">{errors.description.message}</p>
+            )}
           </div>
 
           {/* Profile Picture Upload */}
-          <div className="flex items-center gap-6">
+          <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-gray-700">Choose Job Picture</label>
-            <div className="flex-1 flex items-center gap-4">
+            <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-purple-600 shadow-inner shrink-0 overflow-hidden">
                 {previewUrl && (
                   <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
@@ -114,33 +133,38 @@ export default function CreateJobForm() {
                   or drag and drop<br />SVG, PNG, JPG or GIF (max. 800×400px)
                 </span>
                 <input
+                  {...register("avatar")}
                   type="file"
                   className="hidden"
                   accept="image/*"
-                  onChange={handleFileChange}
+                  onChange={(e) => setValue("avatar", e.target.files)}
                 />
               </label>
             </div>
+            {errors.avatar && (
+              <p className="text-sm text-red-500">{errors.avatar.message}</p>
+            )}
           </div>
 
           {/* Open Seats Section */}
-          <div className="flex items-center gap-6">
+          <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-gray-700">Number of Open Seats</label>
             <input
-              name="openSeats"
+              {...register("openSeats")}
               type="number"
-              value={formData.openSeats}
-              onChange={handleInputChange}
-              className="flex-1 text-gray-700 border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="text-gray-700 border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
               min="1"
             />
+            {errors.openSeats && (
+              <p className="text-sm text-red-500">{errors.openSeats.message}</p>
+            )}
           </div>
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-3 pt-8">
             <button
               type="button"
-              onClick={toggleEdit}
+              onClick={() => console.log("Cancel clicked")}
               className="px-6 py-2 text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 rounded-md"
             >
               Cancel

@@ -1,4 +1,4 @@
-import { Button } from "antd";
+import { Button, notification } from "antd"; // Import notification from antd
 import { useState } from "react";
 import { Pencil, Trash2, Share2 } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom"; // Import useNavigate and Link
@@ -38,7 +38,7 @@ const defaultJobs = [
 const categories = ["View all", "Informatics", "Business", "Design"];
 
 // JobCard Component
-function JobCard({ job }) {
+function JobCard({ job, onDelete, onShare }) {
   const statusStyles =
     job.status === "Open"
       ? "text-green-700 bg-green-100"
@@ -52,9 +52,15 @@ function JobCard({ job }) {
           <h3 className="text-xl font-semibold text-gray-900">{job.title}</h3>
         </div>
         <div className="flex gap-3">
-          {[Share2, Pencil, Trash2].map((Icon, i) => (
-            <Icon key={i} className="w-5 h-5 text-purple-500 cursor-pointer" />
-          ))}
+          <Share2
+            className="w-5 h-5 text-purple-500 cursor-pointer"
+            onClick={() => onShare(job.title)} // Call onShare with job title
+          />
+          <Pencil className="w-5 h-5 text-purple-500 cursor-pointer" />
+          <Trash2
+            className="w-5 h-5 text-purple-500 cursor-pointer"
+            onClick={() => onDelete(job.title)} // Call onDelete with job title
+          />
         </div>
       </div>
       <p className="text-sm text-gray-600 mt-2">{job.description}</p>
@@ -101,6 +107,21 @@ export default function JobListing() {
     );
   };
 
+  const handleDeleteJob = (jobTitle) => {
+    setFilteredJobs((prevJobs) =>
+      prevJobs.filter((job) => job.title !== jobTitle)
+    );
+  };
+
+  const handleShareJob = (jobTitle) => {
+    const jobUrl = `${window.location.origin}/jobs/${encodeURIComponent(
+      jobTitle
+    )}`;
+    navigator.clipboard.writeText(jobUrl).then(() => {
+      alert("Job URL copied to clipboard!");
+    });
+  };
+
   return (
     <div
       className="p-6 bg-white min-h-screen flex flex-col"
@@ -139,7 +160,14 @@ export default function JobListing() {
         {/* Job Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 flex-grow w-full">
           {filteredJobs.length > 0 ? (
-            filteredJobs.map((job, i) => <JobCard key={i} job={job} />)
+            filteredJobs.map((job, i) => (
+              <JobCard
+                key={i}
+                job={job}
+                onDelete={handleDeleteJob}
+                onShare={handleShareJob}
+              />
+            ))
           ) : (
             <div className="col-span-full h-[calc(100vh-200px)] w-full flex items-center justify-center text-gray-400 border border-gray-200">
               No jobs available

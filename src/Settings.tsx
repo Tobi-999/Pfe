@@ -1,9 +1,35 @@
 import React, { useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { CloudUpload } from 'lucide-react';
 
+// Validation schema
+const schema = yup.object().shape({
+  publicProfile: yup.string().required('Public profile is required'),
+  tagline: yup
+    .string()
+    .max(1500, 'Tagline must be at most 1500 characters')
+    .required('Tagline is required'),
+  twitter: yup.string().url('Must be a valid URL').nullable(),
+  facebook: yup.string().url('Must be a valid URL').nullable(),
+  linkedin: yup.string().url('Must be a valid URL').nullable(),
+});
+
 function Settings() {
-  const [tagline, setTagline] = useState("Softy Education is the project, startup, or freelance designer.");
   const [uploadedFile, setUploadedFile] = useState(null);
+  const { control, handleSubmit, watch, setValue } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      publicProfile: '',
+      tagline: '',
+      twitter: '',
+      facebook: '',
+      linkedin: '',
+    },
+  });
+
+  const tagline = watch('tagline');
   const maxCharacters = 1500;
 
   const handleFileDrop = (e) => {
@@ -19,8 +45,12 @@ function Settings() {
     }
   };
 
+  const onSubmit = (data) => {
+    console.log('Form Data:', data);
+  };
+
   return (
-    <div className="relative h-screen flex flex-col items-start px-8">
+    <form onSubmit={handleSubmit(onSubmit)} className="relative h-screen flex flex-col items-start px-8">
       <h1 className="text-2xl font-semibold mb-6">Profile Settings</h1>
       <div className="w-full flex flex-col gap-8">
         <div className="flex items-center justify-between">
@@ -38,10 +68,21 @@ function Settings() {
           <p className="text-lg font-medium mb-1">Public profile</p>
           <div className="flex items-center gap-4">
             <p className="text-gray-500 text-sm">This will be displayed on your profile.</p>
-            <input
-              type="text"
-              className="w-1/2 border border-gray-300 px-2 py-1 rounded ml-[10rem]"
-              defaultValue="Softy Education"
+            <Controller
+              name="publicProfile"
+              control={control}
+              render={({ field, fieldState }) => (
+                <>
+                  <input
+                    {...field}
+                    type="text"
+                    className="w-1/2 border border-gray-300 px-2 py-1 rounded ml-[10rem]"
+                  />
+                  {fieldState.error && (
+                    <p className="text-red-500 text-sm ml-[10rem]">{fieldState.error.message}</p>
+                  )}
+                </>
+              )}
             />
           </div>
         </div>
@@ -50,10 +91,20 @@ function Settings() {
           <p className="text-lg font-medium mb-1">Tagline</p>
           <div className="flex items-start gap-4 self-start">
             <p className="text-gray-500 text-sm">A quick snapshot of your company.</p>
-            <textarea
-              className="w-1/2 border border-gray-300 px-4 py-2 rounded ml-[11rem] h-39"
-              value={tagline}
-              onChange={(e) => setTagline(e.target.value)}
+            <Controller
+              name="tagline"
+              control={control}
+              render={({ field, fieldState }) => (
+                <>
+                  <textarea
+                    {...field}
+                    className="w-1/2 border border-gray-300 px-4 py-2 rounded ml-[11rem] h-39"
+                  />
+                  {fieldState.error && (
+                    <p className="text-red-500 text-sm ml-[11rem]">{fieldState.error.message}</p>
+                  )}
+                </>
+              )}
             />
           </div>
           <p className="text-gray-500 text-sm mt-1 ml-[25rem]">
@@ -122,48 +173,60 @@ function Settings() {
         <hr className="border-gray-300 " />
         <div className="w-3/4 p-6 rounded-lg shadow-sm">
           <p className="text-lg font-medium mb-4">Social profiles</p>
-          <div className="flex items-center gap-2 mb-4 border border-gray-300 rounded-lg px-4 py-2 w-2/3 ml-[27rem]">
-            <span className="text-gray-500 text-sm w-1/4 text-right">twitter.com/</span>
-            <hr className="h-6 border-l border-gray-300 mx-2" />
-            <input
-              type="text"
-              className="w-2/4 border-none focus:ring-0 focus:outline-none"
-              defaultValue="Softy Education"
-            />
-          </div>
-          <div className="flex items-center gap-2 mb-4 border border-gray-300 rounded-lg px-4 py-2 w-2/3 ml-[27rem]">
-            <span className="text-gray-500 text-sm w-1/4 text-right">facebook.com/</span>
-            <hr className="h-6 border-l border-gray-300 mx-2" />
-            <input
-              type="text"
-              className="w-2/4 border-none focus:ring-0 focus:outline-none"
-              defaultValue="Softy Education"
-            />
-          </div>
-          <div className="flex items-center gap-2 border border-gray-300 rounded-lg px-4 py-2 w-2/3 ml-[27rem]">
-            <span className="text-gray-500 text-sm w-1/4 text-right">linkedin.com/company/</span>
-            <hr className="h-6 border-l border-gray-300 mx-2" />
-            <input
-              type="text"
-              className="w-2/4 border-none focus:ring-0 focus:outline-none"
-              defaultValue="Softy Education"
-            />
-          </div>
-       
+          <Controller
+            name="twitter"
+            control={control}
+            render={({ field, fieldState }) => (
+              <div className="flex items-center gap-2 mb-4 border border-gray-300 rounded-lg px-4 py-2 w-2/3 ml-[27rem]">
+                <span className="text-gray-500 text-sm w-1/4 text-right">twitter.com/</span>
+                <hr className="h-6 border-l border-gray-300 mx-2" />
+                <input {...field} type="text" className="w-2/4 border-none focus:ring-0 focus:outline-none" />
+                {fieldState.error && (
+                  <p className="text-red-500 text-sm ml-4">{fieldState.error.message}</p>
+                )}
+              </div>
+            )}
+          />
+          <Controller
+            name="facebook"
+            control={control}
+            render={({ field, fieldState }) => (
+              <div className="flex items-center gap-2 mb-4 border border-gray-300 rounded-lg px-4 py-2 w-2/3 ml-[27rem]">
+                <span className="text-gray-500 text-sm w-1/4 text-right">facebook.com/</span>
+                <hr className="h-6 border-l border-gray-300 mx-2" />
+                <input {...field} type="text" className="w-2/4 border-none focus:ring-0 focus:outline-none" />
+                {fieldState.error && (
+                  <p className="text-red-500 text-sm ml-4">{fieldState.error.message}</p>
+                )}
+              </div>
+            )}
+          />
+          <Controller
+            name="linkedin"
+            control={control}
+            render={({ field, fieldState }) => (
+              <div className="flex items-center gap-2 border border-gray-300 rounded-lg px-4 py-2 w-2/3 ml-[27rem]">
+                <span className="text-gray-500 text-sm w-1/4 text-right">linkedin.com/company/</span>
+                <hr className="h-6 border-l border-gray-300 mx-2" />
+                <input {...field} type="text" className="w-2/4 border-none focus:ring-0 focus:outline-none" />
+                {fieldState.error && (
+                  <p className="text-red-500 text-sm ml-4">{fieldState.error.message}</p>
+                )}
+              </div>
+            )}
+          />
         </div>
         <hr className="border-gray-300 " />
         <div className="flex justify-end gap-4 mt-4 ml-[27rem]">
-            <button className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded">Cancel</button>
-            <button className="bg-purple-600 text-white px-4 py-2 rounded">Save</button>
-          </div>
-          <br />
-          <br />
-          <br />
-          <br />
-        
-         
+          <button type="button" className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded">
+            Cancel
+          </button>
+          <button type="submit" className="bg-purple-600 text-white px-4 py-2 rounded">
+            Save
+          </button>
+        </div>
       </div>
-    </div>
+    </form>
   );
 }
 
