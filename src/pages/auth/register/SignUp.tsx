@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { supabase } from "./SupaBase";
+import { supabase } from "../../../supabase/SupaBase";
+import "./index.css";
 
 const schema = yup.object({
   name: yup.string().required("Name is required"),
@@ -103,7 +104,10 @@ export default function SignUp() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium mb-1">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium mb-1"
+            >
               Password*
             </label>
             <div className="relative">

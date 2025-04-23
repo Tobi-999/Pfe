@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { supabase } from "../../../SupaBase";
+import { supabase } from "../../../supabase/SupaBase";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import AuthBanner from "../../../assets/authimg.png";
 import "./index.css";
@@ -35,7 +35,7 @@ export default function Login() {
       message.open({
         type: "error",
         content: "Login failed: " + error.message,
-        icon: <FrownOutlined style={{ color: "red" }} />, 
+        icon: <FrownOutlined style={{ color: "red" }} />,
         duration: 3, // Display for 3 seconds
       });
     } else {
@@ -43,16 +43,16 @@ export default function Login() {
       message.open({
         type: "success",
         content: "Login successful!",
-        icon: <SmileOutlined style={{ color: "green" }} />, 
+        icon: <SmileOutlined style={{ color: "green" }} />,
         duration: 3, // Display for 3 seconds
       });
       message.open({
         type: "info",
         content: "✨ Welcome back! ✨",
-        icon: <SmileOutlined style={{ color: "blue" }} />, 
+        icon: <SmileOutlined style={{ color: "blue" }} />,
         duration: 3, // Display for 3 seconds
       });
-      localStorage.setItem("userEmail", email); 
+      localStorage.setItem("userEmail", email);
       navigate("/dashboard");
     }
   };
@@ -140,7 +140,8 @@ export default function Login() {
             Lorem Ipsum is <br /> simply dummy text
           </h1>
           <p className="text-lg text-white text-center mt-4 max-w-2xl">
-            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard.
+            Lorem Ipsum is simply dummy text of the printing and typesetting
+            industry. Lorem Ipsum has been the industry's standard.
           </p>
         </div>
         <div className="absolute bottom-20 flex items-center justify-center w-full z-10">
