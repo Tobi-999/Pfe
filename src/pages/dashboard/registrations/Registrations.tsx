@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Search, CloudDownload, Check, X, Eye, Funnel, Settings, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import pptxgen from "pptxgenjs";
+import * as XLSX from "xlsx";
 
 const Home = () => {
   const ITEMS_PER_PAGE = 10;
@@ -89,39 +89,21 @@ const Home = () => {
 
   const handleViewMore = (key) => navigate(`/vue-more/${key}`);
 
-  const exportToPowerPoint = () => {
-    const pptx = new pptxgen();
-    const slide = pptx.addSlide();
-
-    const headers = [
-      [
-        { text: "Name", options: { bold: true, fill: "2E86C1", color: "FFFFFF", align: "center" } },
-        { text: "Email Address", options: { bold: true, fill: "2E86C1", color: "FFFFFF", align: "center" } },
-        { text: "Phone Number", options: { bold: true, fill: "2E86C1", color: "FFFFFF", align: "center" } },
-        { text: "Submission Date", options: { bold: true, fill: "2E86C1", color: "FFFFFF", align: "center" } },
-        { text: "Status", options: { bold: true, fill: "2E86C1", color: "FFFFFF", align: "center" } },
-      ],
-    ];
-
+  const exportToExcel = () => {
+    const headers = ["Name", "Email Address", "Phone Number", "Submission Date", "Status"];
     const rows = allData.map((item) => [
-      { text: item.name, options: { align: "left", fill: "F2F4F4" } },
-      { text: item.email, options: { align: "left", fill: "F2F4F4" } },
-      { text: item.phoneNumber, options: { align: "center", fill: "F2F4F4" } },
-      { text: item.submissionDate, options: { align: "center", fill: "F2F4F4" } },
-      { text: item.status, options: { align: "center", fill: item.status === "Approved" ? "D4EFDF" : "FADBD8" } },
+      item.name,
+      item.email,
+      item.phoneNumber,
+      item.submissionDate,
+      item.status,
     ]);
 
-    slide.addTable([...headers, ...rows], {
-      x: 0.5,
-      y: 1,
-      w: 9,
-      colW: [2, 2.5, 2, 2, 1.5],
-      border: { pt: 1, color: "000000" },
-      fontSize: 12,
-      valign: "middle",
-    });
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Registrations");
 
-    pptx.writeFile("Registrations.pptx");
+    XLSX.writeFile(workbook, "Registrations.xlsx");
   };
 
   const deleteAllRows = () => {
@@ -170,7 +152,7 @@ const Home = () => {
           )}
           <button
             className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg text-gray-700 hover:bg-purple-200 hover:text-purple-700 hover:shadow-lg"
-            onClick={exportToPowerPoint}
+            onClick={exportToExcel}
           >
             <CloudDownload size={16} /> Export
           </button>

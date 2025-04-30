@@ -134,7 +134,7 @@ export default function JobListing() {
           <Button
             type="primary"
             className="bg-purple-600 hover:bg-purple-700 border-purple-600 text-lg sm:text-xl px-4 sm:px-6 py-3 sm:py-5 rounded-lg"
-            onClick={() => navigate("/add-job")} // Navigate to Add Job page
+            onClick={() => navigate("AddJob")} // Navigate to Add Job page
           >
             + Add Job
           </Button>

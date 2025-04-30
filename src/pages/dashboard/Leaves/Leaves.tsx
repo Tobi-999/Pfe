@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Search, CloudDownload, Check, X, Trash2 } from "lucide-react";
-import PptxGenJS from "pptxgenjs"; // Import pptxgenjs
+import * as XLSX from "xlsx"; // Import xlsx library
 
 const Home = () => {
   const allData = Array.from({ length: 100 }, (_, index) => ({
@@ -103,19 +103,8 @@ const Home = () => {
     setRowToApprove(null);
   };
 
-  const exportToPowerPoint = () => {
-    const pptx = new PptxGenJS();
-    const slide = pptx.addSlide();
-
-    slide.addText("Leaves Table", {
-      x: 0.5,
-      y: 0.3,
-      fontSize: 18,
-      bold: true,
-      color: "363636",
-    });
-
-    const tableData = [
+  const exportToExcel = () => {
+    const worksheetData = [
       ["Name", "Leave Type", "Start Date", "End Date", "Duration", "Status"], // Table headers
       ...allData.map((item) => [
         item.name,
@@ -127,38 +116,10 @@ const Home = () => {
       ]),
     ];
 
-    slide.addTable(tableData, {
-      x: 0.5,
-      y: 1,
-      w: 9,
-      border: { pt: 1, color: "CFCFCF" },
-      fill: "F7F7F7",
-      fontSize: 10,
-      color: "363636",
-      valign: "middle",
-      align: "center",
-      rowH: 0.3,
-      colW: [2, 2, 1.5, 1.5, 1, 1.5], // Column widths
-      autoPage: true, // Automatically add pages if content overflows
-      margin: 0.1,
-      tableHeaderProps: {
-        fill: "FF5733", // Vibrant orange header background
-        color: "FFFFFF", // White header text
-        bold: true,
-        fontSize: 12,
-      },
-      tableRowProps: {
-        fill: "FFC300", // Bright yellow for default rows
-      },
-      tableRowEvenProps: {
-        fill: "DAF7A6", 
-      },
-      tableCellProps: {
-        border: { pt: 0.5, color: "FFFFFF" }, 
-      },
-    });
-
-    pptx.writeFile("LeavesTable.pptx");
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "LeavesTable");
+    XLSX.writeFile(workbook, "LeavesTable.xlsx");
   };
 
   return (
@@ -167,7 +128,7 @@ const Home = () => {
         <h1 className="text-xl font-semibold">Home</h1>
         <button
           className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg text-gray-700 hover:bg-purple-200 hover:text-purple-700 hover:shadow-lg transition-all"
-          onClick={exportToPowerPoint} // Attach export function
+          onClick={exportToExcel} // Attach export function
         >
           <CloudDownload size={16} /> Export
         </button>

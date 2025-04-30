@@ -23,6 +23,7 @@ const routes = [
     component: lazy(() => import("../pages/auth/register/SignUp")),
     guard: lazy(() => import("../guards/GuestGuard")),
   },
+
 ];
 
 export default routes;
