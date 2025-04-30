@@ -2,8 +2,13 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { UploadCloud, DownloadCloud, Search } from "lucide-react";
+import { supabase } from "../../../supabase/SupaBase";
+import { message } from "antd";
+import { toast } from "sonner";
 
-// Define the validation schema using yup
+// todo add field called department (select either it business or desing)
+// todo add fied called ends_at (date)
+
 const schema = yup.object().shape({
   jobName: yup.string().required("Job name is required"),
   description: yup
@@ -27,6 +32,7 @@ const schema = yup.object().shape({
           )
         : true
     ),
+  previewUrl: yup.string().nullable(),
 });
 
 export default function CreateJobForm() {
@@ -41,15 +47,55 @@ export default function CreateJobForm() {
     defaultValues: {
       jobName: "",
       description: "",
-      openSeats: "",
+      openSeats: 1,
       avatar: null,
+      previewUrl: null,
     },
   });
 
-  const previewUrl = watch("avatar") ? URL.createObjectURL(watch("avatar")[0]) : null;
+  const previewUrl = watch("previewUrl");
+  const onSubmit = async (data: any) => {
+    try {
+      // Upload image to storage bucket if provided
+      let imageUrl = null;
+      if (data.avatar?.[0]) {
+        const file = data.avatar[0];
+        const fileExt = file.name.split(".").pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from("job-images")
+          .upload(fileName, file);
 
-  const onSubmit = (data: any) => {
-    console.log("Form submitted:", data);
+        if (uploadError) throw uploadError;
+
+        imageUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/job-images/${fileName}`;
+      }
+
+      // Insert job data into jobs table
+      const { error: jobError } = await supabase.from("jobs").insert([
+        {
+          title: data.jobName,
+          description: data.description,
+          number_of_seats: data.openSeats,
+          picture: imageUrl,
+          created_at: new Date(),
+        },
+      ]);
+
+      if (jobError) throw jobError;
+
+      toast.success("✅ Job created successfully!");
+
+      // Reset form after successful submission
+      setValue("jobName", "");
+      setValue("description", "");
+      setValue("openSeats", 1);
+      setValue("avatar", undefined);
+      setValue("previewUrl", undefined);
+    } catch (error) {
+      console.error("Error creating job:", error);
+      message.error("Failed to create job");
+    }
   };
 
   return (
@@ -70,7 +116,9 @@ export default function CreateJobForm() {
       <div className="max-w-screen-xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h2 className="text-xl font-semibold text-gray-800">Personal info</h2>
+            <h2 className="text-xl font-semibold text-gray-800">
+              Personal info
+            </h2>
             <p className="text-sm text-gray-500">
               Update your photo and personal details here.
             </p>
@@ -89,10 +137,16 @@ export default function CreateJobForm() {
           </div>
         </div>
 
-        <form id="jobForm" onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <form
+          id="jobForm"
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-8"
+        >
           {/* Job Name Section */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-gray-700">Job Name</label>
+            <label className="text-sm font-medium text-gray-700">
+              Job Name
+            </label>
             <input
               {...register("jobName")}
               type="text"
@@ -105,7 +159,9 @@ export default function CreateJobForm() {
 
           {/* Description Section */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-gray-700">Description</label>
+            <label className="text-sm font-medium text-gray-700">
+              Description
+            </label>
             <textarea
               {...register("description")}
               rows={4}
@@ -113,31 +169,56 @@ export default function CreateJobForm() {
               className="text-gray-700 border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
             />
             {errors.description && (
-              <p className="text-sm text-red-500">{errors.description.message}</p>
+              <p className="text-sm text-red-500">
+                {errors.description.message}
+              </p>
             )}
           </div>
 
           {/* Profile Picture Upload */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-gray-700">Choose Job Picture</label>
+            <label className="text-sm font-medium text-gray-700">
+              Choose Job Picture
+            </label>
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-purple-600 shadow-inner shrink-0 overflow-hidden">
                 {previewUrl && (
-                  <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
                 )}
               </div>
               <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-purple-500 transition">
                 <UploadCloud className="w-6 h-6 text-gray-400 mb-2" />
-                <span className="text-sm text-purple-600 font-medium">Click to upload</span>
+                <span className="text-sm text-purple-600 font-medium">
+                  Click to upload
+                </span>
                 <span className="text-xs text-gray-500 mt-1 text-center">
-                  or drag and drop<br />SVG, PNG, JPG or GIF (max. 800×400px)
+                  or drag and drop
+                  <br />
+                  SVG, PNG, JPG or GIF (max. 800×400px)
                 </span>
                 <input
                   {...register("avatar")}
                   type="file"
                   className="hidden"
                   accept="image/*"
-                  onChange={(e) => setValue("avatar", e.target.files)}
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files.length > 0) {
+                      const file = e.target.files[0];
+                      setValue("avatar", file);
+                      // Create preview URL
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        if (reader.result) {
+                          setValue("previewUrl", reader.result as string);
+                        }
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
                 />
               </label>
             </div>
@@ -148,7 +229,9 @@ export default function CreateJobForm() {
 
           {/* Open Seats Section */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-gray-700">Number of Open Seats</label>
+            <label className="text-sm font-medium text-gray-700">
+              Number of Open Seats
+            </label>
             <input
               {...register("openSeats")}
               type="number"

@@ -101,10 +101,13 @@
 import { BrowserRouter } from "react-router-dom";
 import routes, { renderRoutes } from "./routes";
 import { SupaBaseConnectionProvider } from "./context";
+import { Toaster } from "sonner";
 
 function App() {
   return (
     <SupaBaseConnectionProvider>
+      <Toaster richColors />
+
       <BrowserRouter>{renderRoutes(routes)}</BrowserRouter>
     </SupaBaseConnectionProvider>
   );

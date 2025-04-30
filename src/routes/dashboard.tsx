@@ -1,8 +1,6 @@
 import { Component } from "lucide-react";
 import { lazy } from "react";
 
-// TODO FINISH ALL THE ROUTING SYSTEM OF YOUR APPLICATION
-
 const routes = [
   {
     exact: true,
@@ -20,7 +18,7 @@ const routes = [
   },
   {
     exact: true,
-    path: "/jobs/read",
+    path: "/jobs/read/:id",
     component: lazy(() => import("../pages/Dashboard/jobs/ReadJobs")),
     layout: lazy(() => import("../layout/Dashboard")),
     // guard: lazy(() => import("../guards/SupabaseConnectionGuard")),
@@ -34,7 +32,7 @@ const routes = [
   },
   {
     exact: true,
-    path: "/recording",
+    path: "/recordings",
     component: lazy(() => import("../pages/Dashboard/recording/Recordings")),
     layout: lazy(() => import("../layout/Dashboard")),
     // guard: lazy(() => import("../guards/SupabaseConnectionGuard")),
@@ -42,8 +40,10 @@ const routes = [
 
   {
     exact: true,
-    path: "/registration",
-    component: lazy(() => import("../pages/Dashboard/registrations/Registrations")),
+    path: "/registrations",
+    component: lazy(
+      () => import("../pages/Dashboard/registrations/Registrations")
+    ),
     layout: lazy(() => import("../layout/Dashboard")),
     // guard: lazy(() => import("../guards/SupabaseConnectionGuard")),
   },

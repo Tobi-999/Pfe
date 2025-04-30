@@ -1,72 +1,68 @@
-import { Button, notification } from "antd"; // Import notification from antd
-import { useState } from "react";
+import { Button } from "antd";
+import { useState, useEffect } from "react";
 import { Pencil, Trash2, Share2 } from "lucide-react";
-import { useNavigate, Link } from "react-router-dom"; // Import useNavigate and Link
+import { useNavigate, Link } from "react-router-dom";
+import { supabase } from "../../../supabase/SupaBase";
 
-// Default job data and categories
-const defaultJobs = [
-  {
-    title: "UI/UX Design",
-    description: "A short summary of the job.",
-    deadline: "2023-11-30",
-    status: "Open",
-    category: "Design",
-  },
-  {
-    title: "Business Analyst",
-    description: "Analyze business requirements.",
-    deadline: "2023-12-15",
-    status: "Closed",
-    category: "Business",
-  },
-  {
-    title: "Data Scientist",
-    description: "Analyze data trends and build models.",
-    deadline: "2023-12-20",
-    status: "Open",
-    category: "Informatics",
-  },
-  ...Array.from({ length: 20 }, (_, i) => ({
-    title: `Job Title ${i + 1}`,
-    description: `Description for job ${i + 1}.`,
-    deadline: `2023-12-${String((i % 31) + 1).padStart(2, "0")}`,
-    status: i % 2 === 0 ? "Open" : "Closed",
-    category: i % 3 === 0 ? "Informatics" : i % 3 === 1 ? "Business" : "Design",
-  })),
-];
+interface Job {
+  id: number;
+  title: string;
+  description: string;
+  number_of_seats: number;
+  picture: string | null;
+  created_at: string;
+  status: "Open" | "Closed";
+  category: "it" | "business" | "design";
+}
 
-const categories = ["View all", "Informatics", "Business", "Design"];
+const categories = ["View all", "it", "business", "design"];
 
 // JobCard Component
-function JobCard({ job, onDelete, onShare }) {
+function JobCard({
+  job,
+  onDelete,
+  onShare,
+}: {
+  job: Job;
+  onDelete: (jobId: number) => void;
+  onShare: (jobTitle: string) => void;
+}) {
   const statusStyles =
     job.status === "Open"
       ? "text-green-700 bg-green-100"
       : "text-red-700 bg-red-100";
 
   return (
-    <div className="max-w-sm bg-white  rounded-lg p-4 border border-gray-200 transition-transform transform hover:scale-105 hover:shadow-xl relative">
+    <div className="max-w-sm bg-white rounded-lg p-4 border border-gray-200 transition-transform transform hover:scale-105 hover:shadow-xl relative">
       <div className="flex justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-purple-600 rounded-lg"></div>
+          <div className="w-12 h-12 bg-purple-600 rounded-lg">
+            {job.picture && (
+              <img
+                src={job.picture}
+                alt={job.title}
+                className="w-full h-full object-cover rounded-lg"
+              />
+            )}
+          </div>
           <h3 className="text-xl font-semibold text-gray-900">{job.title}</h3>
         </div>
         <div className="flex gap-3">
           <Share2
             className="w-5 h-5 text-purple-500 cursor-pointer"
-            onClick={() => onShare(job.title)} // Call onShare with job title
+            onClick={() => onShare(job.title)}
           />
           <Pencil className="w-5 h-5 text-purple-500 cursor-pointer" />
           <Trash2
             className="w-5 h-5 text-purple-500 cursor-pointer"
-            onClick={() => onDelete(job.title)} // Call onDelete with job title
+            onClick={() => onDelete(job.id)}
           />
         </div>
       </div>
       <p className="text-sm text-gray-600 mt-2">{job.description}</p>
       <p className="text-sm text-gray-600 mt-2">
-        <span className="font-medium text-gray-800">Deadline:</span>{" "}
-        {job.deadline}
+        <span className="font-medium text-gray-800">Seats:</span>{" "}
+        {job.number_of_seats}
       </p>
       <div className="mt-3">
         <span
@@ -77,7 +73,7 @@ function JobCard({ job, onDelete, onShare }) {
       </div>
       <hr className="my-2 border-gray-300" />
       <Link
-        to="/read-jobs" // Navigate to the ReadJobs page
+        to={`/read-jobs/${job.id}`}
         className="text-sm font-medium text-purple-600 cursor-pointer hover:underline absolute bottom-4 right-4"
       >
         See More
@@ -88,32 +84,54 @@ function JobCard({ job, onDelete, onShare }) {
 
 // Main JobListing Component
 export default function JobListing() {
-  const navigate = useNavigate(); // Initialize navigate
-  // Hooks
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("View all");
-  const [filteredJobs, setFilteredJobs] = useState(defaultJobs);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Handlers
-  const handleCategoryClick = (category) => {
+  useEffect(() => {
+    fetchJobs();
+  }, [selectedCategory]);
+
+  const fetchJobs = async () => {
+    try {
+      setLoading(true);
+      let query = supabase
+        .from("jobs")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (selectedCategory !== "View all") {
+        query = query.eq("department", selectedCategory);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      setJobs(data || []);
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCategoryClick = (category: string) => {
     setSelectedCategory(category);
-    setFilteredJobs(
-      category === "View all"
-        ? defaultJobs
-        : defaultJobs.filter((job) =>
-            category === "Informatics"
-              ? job.category === "Informatics"
-              : job.title.includes(category)
-          )
-    );
   };
 
-  const handleDeleteJob = (jobTitle) => {
-    setFilteredJobs((prevJobs) =>
-      prevJobs.filter((job) => job.title !== jobTitle)
-    );
+  const handleDeleteJob = async (jobId: number) => {
+    try {
+      const { error } = await supabase.from("jobs").delete().eq("id", jobId);
+
+      if (error) throw error;
+      setJobs(jobs.filter((job) => job.id !== jobId));
+    } catch (error) {
+      console.error("Error deleting job:", error);
+    }
   };
 
-  const handleShareJob = (jobTitle) => {
+  const handleShareJob = (jobTitle: string) => {
     const jobUrl = `${window.location.origin}/jobs/${encodeURIComponent(
       jobTitle
     )}`;
@@ -127,14 +145,14 @@ export default function JobListing() {
       className="p-6 bg-white min-h-screen flex flex-col"
       style={{ marginLeft: "0px" }}
     >
-      <div className="w-full max-w-full mx-auto  rounded-lg p-4 flex-grow">
+      <div className="w-full max-w-full mx-auto rounded-lg p-4 flex-grow">
         {/* Header */}
         <div className="flex flex-wrap justify-between items-center mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold">Jobs</h1>
           <Button
             type="primary"
             className="bg-purple-600 hover:bg-purple-700 border-purple-600 text-lg sm:text-xl px-4 sm:px-6 py-3 sm:py-5 rounded-lg"
-            onClick={() => navigate("AddJob")} // Navigate to Add Job page
+            onClick={() => navigate("create")}
           >
             + Add Job
           </Button>
@@ -159,10 +177,14 @@ export default function JobListing() {
 
         {/* Job Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 flex-grow w-full">
-          {filteredJobs.length > 0 ? (
-            filteredJobs.map((job, i) => (
+          {loading ? (
+            <div className="col-span-full h-[calc(100vh-200px)] w-full flex items-center justify-center text-gray-400">
+              Loading jobs...
+            </div>
+          ) : jobs.length > 0 ? (
+            jobs.map((job) => (
               <JobCard
-                key={i}
+                key={job.id}
                 job={job}
                 onDelete={handleDeleteJob}
                 onShare={handleShareJob}
