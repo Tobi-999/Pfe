@@ -27,10 +27,26 @@ function JobCard({
   onDelete: (jobId: number) => void;
   onShare: (jobTitle: string) => void;
 }) {
-  const statusStyles =
-    job.status === "Open"
-      ? "text-green-700 bg-green-100"
-      : "text-red-700 bg-red-100";
+
+console.log(job)
+
+const endsAt = new Date(job?.ends_at);
+const now = new Date();
+
+let status;
+if (endsAt > now) {
+  status = "open";
+} else {
+  status = "closed";
+}
+
+const statusStyles =
+status === "open"
+  ? "text-green-700 bg-green-100"
+  : "text-red-700 bg-red-100";
+console.log("Status:", status);
+
+
 
   return (
     <div className="max-w-sm bg-white rounded-lg p-4 border border-gray-200 transition-transform transform hover:scale-105 hover:shadow-xl relative">
@@ -68,12 +84,12 @@ function JobCard({
         <span
           className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${statusStyles}`}
         >
-          {job.status}
+          {status}
         </span>
       </div>
       <hr className="my-2 border-gray-300" />
       <Link
-        to={`/read-jobs/${job.id}`}
+        to={`/ReadJobs/${job.id}`}
         className="text-sm font-medium text-purple-600 cursor-pointer hover:underline absolute bottom-4 right-4"
       >
         See More

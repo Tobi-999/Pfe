@@ -18,7 +18,7 @@ const routes = [
   },
   {
     exact: true,
-    path: "/jobs/read/:id",
+    path: "/ReadJobs/:id",
     component: lazy(() => import("../pages/Dashboard/jobs/ReadJobs")),
     layout: lazy(() => import("../layout/Dashboard")),
     // guard: lazy(() => import("../guards/SupabaseConnectionGuard")),
@@ -63,25 +63,43 @@ const routes = [
   },
   {
     exact: true,
-    path: "/home/users",
+    path: "/users",
     component: lazy(() => import("../pages/Dashboard/Home/UserHome")),
     layout: lazy(() => import("../layout/Dashboard")),
     // guard: lazy(() => import("../guards/SupabaseConnectionGuard")),
   },
   {
     exact: true,
-    path: "/home/view-more",
+    path: "/vue-more/1",
     component: lazy(() => import("../VueMore")),
     layout: lazy(() => import("../layout/Dashboard")),
     // guard: lazy(() => import("../guards/SupabaseConnectionGuard")),
   },
   {
     exact: true,
-    path: "/home/portfolio",
-    component: lazy(() => import("../pages/Dashboard/Home/VuePortfolio.tsx")),
+    path: "/portfolio",
+    component: lazy(() => import("../pages/Dashboard/Home/VuePortfolio")),
     layout: lazy(() => import("../layout/Dashboard")),
     // guard: lazy(() => import("../guards/SupabaseConnectionGuard")),
   },
+  
+  {
+    exact: true,
+    path: "/employee",
+    component: lazy(() => import("../pages/Dashboard/Employee/Employee")),
+    layout: lazy(() => import("../layout/Dashboard")),
+    // guard: lazy(() => import("../guards/SupabaseConnectionGuard")),
+  }
+  ,
+  {
+    exact: true,
+    path: "/CreateEmployee",
+    component: lazy(() => import("../pages/Dashboard/Employee/CreateEmployee")),
+    layout: lazy(() => import("../layout/Dashboard")),
+    // guard: lazy(() => import("../guards/SupabaseConnectionGuard")),
+  }
+
+
 ];
 
 export default routes;

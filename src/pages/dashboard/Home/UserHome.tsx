@@ -126,7 +126,8 @@ function LeaveBalanceCards({ cardValues }) {
 
 function Card({ icon, label, value, bg }) {
   return (
-    <div className="bg-white rounded-lg shadow p-6 relative">
+    <div className="bg-white rounded-lg shadow p-6 relative hover:shadow-lg hover:scale-105 transition-transform duration-200">
+      {/* Added hover effect */}
       <div className="absolute top-4 right-4">
         <MoreVertical className="text-gray-400" />
       </div>
@@ -185,7 +186,11 @@ function TableBody({ leaves, checkedRows, onRowCheck }) {
   return (
     <tbody className="divide-y divide-gray-200">
       {leaves.map((leave, index) => (
-        <tr key={index} className="align-middle">
+        <tr
+          key={index}
+          className="align-middle hover:bg-gray-100 transition-colors duration-200"
+        >
+          {/* Added hover effect */}
           <td className="px-4 py-4 text-center">
             <input
               type="checkbox"
@@ -223,7 +228,7 @@ function TableBody({ leaves, checkedRows, onRowCheck }) {
 // Profile Sidebar
 function ProfileSidebar({ onApplyClick, cardValues }) {
   return (
-    <div className="w-80 bg-white text-black p-6 flex flex-col justify-between fixed right-0 top-0 h-full">
+    <div className="w-68 bg-white text-black p-6 flex flex-col justify-between fixed right-0 top-0 h-full">
       <div className="flex justify-end mb-4">
         <Search className="text-gray-400 w-6 h-6" />
       </div>

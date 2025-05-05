@@ -33,6 +33,11 @@ const schema = yup.object().shape({
         : true
     ),
   previewUrl: yup.string().nullable(),
+  department: yup
+    .string()
+    .oneOf(["it", "business", "design"], "Invalid department")
+    .required("Department is required"),
+  ends_at: yup.date().required("End date is required"),
 });
 
 export default function CreateJobForm() {
@@ -50,6 +55,8 @@ export default function CreateJobForm() {
       openSeats: 1,
       avatar: null,
       previewUrl: null,
+      department: "",
+      ends_at: "",
     },
   });
 
@@ -79,6 +86,8 @@ export default function CreateJobForm() {
           number_of_seats: data.openSeats,
           picture: imageUrl,
           created_at: new Date(),
+          department: data.department,
+          ends_at: data.ends_at,
         },
       ]);
 
@@ -92,6 +101,8 @@ export default function CreateJobForm() {
       setValue("openSeats", 1);
       setValue("avatar", undefined);
       setValue("previewUrl", undefined);
+      setValue("department", "");
+      setValue("ends_at", "");
     } catch (error) {
       console.error("Error creating job:", error);
       message.error("Failed to create job");
@@ -236,10 +247,44 @@ export default function CreateJobForm() {
               {...register("openSeats")}
               type="number"
               className="text-gray-700 border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              min="1"
+              min=" "
             />
             {errors.openSeats && (
               <p className="text-sm text-red-500">{errors.openSeats.message}</p>
+            )}
+          </div>
+
+          {/* Department Section */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-gray-700">
+              Department
+            </label>
+            <select
+              {...register("department")}
+              className="text-gray-700 border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="">Select department</option>
+              <option value="it">IT</option>
+              <option value="business">Business</option>
+              <option value="design">Design</option>
+            </select>
+            {errors.department && (
+              <p className="text-sm text-red-500">{errors.department.message}</p>
+            )}
+          </div>
+
+          {/* End Date Section */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-gray-700">
+              End Date
+            </label>
+            <input
+              {...register("ends_at")}
+              type="date"
+              className="text-gray-700 border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+            {errors.ends_at && (
+              <p className="text-sm text-red-500">{errors.ends_at.message}</p>
             )}
           </div>
 
