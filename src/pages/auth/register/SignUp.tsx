@@ -4,6 +4,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { supabase } from "../../../supabase/SupaBase";
 import "./index.css";
+import { Navigate, useNavigate } from "react-router-dom";
 
 const schema = yup.object({
   name: yup.string().required("Name is required"),
@@ -15,6 +16,7 @@ const schema = yup.object({
 });
 
 export default function SignUp() {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -43,16 +45,17 @@ export default function SignUp() {
         options: {
           data: {
             first_name: name,
+            last_name: "Doe",
           },
         },
       });
 
       if (error) {
         console.error("Error signing up:", error.message);
-        return false; // Return false if there is an error
+        return false;
       } else {
         console.log("Sign-up successful!");
-        return true; // Return true if sign-up is successful
+        return navigate("/login"); // Return true if sign-up is successful
       }
     } catch (err) {
       console.error("Unexpected error during sign-up:", err);

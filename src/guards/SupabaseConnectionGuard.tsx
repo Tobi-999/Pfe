@@ -1,21 +1,88 @@
-import { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
+import { ReactNode, useEffect } from "react";
+import { Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useAuthContext } from "../context/supabase/supaBaseConnectionCtx";
+
+// Define common pages that are accessible to all roles
+const commonPages = [
+  "/profile",
+  "/settings",
+  "/jobs",
+  "/notifications",
+  "/read-jobs",
+];
+
+// Define role-specific pages
+const rolePages = {
+  admin: ["/home", "/create-job", "/edit-job", "/dashboard", "registrations"],
+  employee: {
+    verified: ["/users", "/my-applications", "/available-jobs", "/apply-job"],
+    unverified: ["/jobs", "/complete-profile", "/upload-documents"],
+  },
+};
 
 export default function SupabaseConnectionGuard({
   children,
 }: {
   children: ReactNode;
 }) {
-  const { isAuthenticated, isInitialized } = useAuthContext();
+  const { isAuthenticated, isInitialized, user } = useAuthContext();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  if (!isAuthenticated) {
-    return <Navigate to={"/login"} />;
-  }
+  useEffect(() => {
+    console.log("innn");
+    if (!isInitialized && isAuthenticated && user) {
+      const userRole = user.role || "employee";
+      const currentPath = location.pathname;
+
+      console.log({ currentPath, userRole, isVerified: user.is_verified });
+      // Check if the current page is accessible to the user
+      const isCommonPage = commonPages.some((page) =>
+        currentPath.startsWith(page)
+      );
+
+      let isRoleSpecificPage = false;
+      if (userRole === "admin") {
+        isRoleSpecificPage = rolePages.admin.some((page) =>
+          currentPath.startsWith(page)
+        );
+      } else {
+        // For employees, check verification status
+        const employeePages = user.is_verified
+          ? rolePages.employee.verified
+          : rolePages.employee.unverified;
+        isRoleSpecificPage = employeePages.some((page) =>
+          currentPath.startsWith(page)
+        );
+      }
+
+      if (!isCommonPage && !isRoleSpecificPage) {
+        // Redirect to appropriate home page based on role and verification status
+        if (userRole === "admin") {
+          navigate("/home");
+        } else {
+          // For employees, redirect based on verification status
+          if (user.is_verified) {
+            navigate("/users");
+          } else {
+            navigate("/verification");
+          }
+        }
+      }
+    }
+  }, [isInitialized, isAuthenticated, user, location.pathname, navigate]);
 
   if (isInitialized) {
-    return <div>loaderrrrr</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+      </div>
+    );
   }
 
-  return <> {children} </>;
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
+  return <>{children}</>;
 }

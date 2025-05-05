@@ -5,16 +5,19 @@ import { useAuthContext } from "../context";
 const GuestGuard = ({ children }: { children: React.ReactElement }) => {
   const navigate = useNavigate();
 
-  const { isAuthenticated, isInitialized } = useAuthContext();
-
-  console.log({ isAuthenticated, isInitialized });
-
-  if (isAuthenticated) {
-    return <Navigate to={"/"} />;
-  }
+  const { isAuthenticated, isInitialized, user } = useAuthContext();
 
   if (isInitialized) {
     return <div>loaderrrrr</div>;
+  }
+
+  if (isAuthenticated) {
+    if (user?.role === "admin") {
+      return <Navigate to={"/home"} />;
+    }
+    if (user?.role === "employee") {
+      return <Navigate to={"/users"} />;
+    }
   }
 
   console.log("teststst");

@@ -135,6 +135,8 @@ export function SupaBaseConnectionProvider({ children }: AuthProviderProps) {
       const { data: sessionData, error: sessionError } =
         await supabase.auth.getSession();
 
+      console.log("here");
+
       if (sessionError) {
         throw sessionError;
       }
@@ -146,9 +148,11 @@ export function SupaBaseConnectionProvider({ children }: AuthProviderProps) {
       }
       const { data: userData, error: errorGetProfile } = await supabase
         .from("profiles")
-        .select(`first_name, user_role`)
+        .select(`first_name, role`)
         .eq("id", user.id)
         .single();
+
+      console.log({ userData });
 
       if (errorGetProfile) throw errorGetProfile;
 

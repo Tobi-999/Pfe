@@ -14,7 +14,6 @@ const routes = [
     exact: true,
     path: "/login",
     component: lazy(() => import("../pages/auth/login/Login")),
-    //guest guard
     guard: lazy(() => import("../guards/GuestGuard")),
   },
   {
@@ -23,7 +22,6 @@ const routes = [
     component: lazy(() => import("../pages/auth/register/SignUp")),
     guard: lazy(() => import("../guards/GuestGuard")),
   },
-
 ];
 
 export default routes;
