@@ -4,19 +4,25 @@ import { useAuthContext } from "../context/supabase/supaBaseConnectionCtx";
 
 // Define common pages that are accessible to all roles
 const commonPages = [
+  "/jobs",
+  "/users",
   "/profile",
   "/settings",
-  "/jobs",
-  "/notifications",
-  "/read-jobs",
+  "/leaves",
+  "/recordings",
+  "/registrations",
+  "/vue-more/1",
+  "/home",
+  "/CreateEmployee",
+
 ];
 
 // Define role-specific pages
 const rolePages = {
-  admin: ["/home", "/create-job", "/edit-job", "/dashboard", "registrations"],
+  admin: ["/home", "/jobs", "/leaves", "/recordings", "registrations","/vue-more/1"],
   employee: {
-    verified: ["/users", "/my-applications", "/available-jobs", "/apply-job"],
-    unverified: ["/jobs", "/complete-profile", "/upload-documents"],
+    verified: ["/users", "/leaves", "/recordings","jobs" ,"/vue-more/1" ,"/home","/CreateEmployee"],
+    unverified: ["/jobs", "/leaves", "/recordings", "/jobs","/vue-more/1","/home","/CreateEmployee"],
   },
 };
 
