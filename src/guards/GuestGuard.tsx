@@ -1,26 +1,29 @@
-import React, { useEffect } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import React from "react";
+import { Navigate } from "react-router-dom";
 import { useAuthContext } from "../context";
 
 const GuestGuard = ({ children }: { children: React.ReactElement }) => {
-  const navigate = useNavigate();
-
   const { isAuthenticated, isInitialized, user } = useAuthContext();
-
-  if (isInitialized) {
-    return <div>loaderrrrr</div>;
-  }
 
   if (isAuthenticated) {
     if (user?.role === "admin") {
-      return <Navigate to={"/home"} />;
-    }
-    if (user?.role === "employee") {
-      return <Navigate to={"/users"} />;
+      return <Navigate to="/admin/dashboard" />;
+    } else {
+      if (user?.is_verified) {
+        return <Navigate to="/dashboard" />;
+      } else {
+        return <Navigate to="/jobs" />;
+      }
     }
   }
 
-  console.log("teststst");
+  if (isInitialized) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+      </div>
+    );
+  }
 
   return <>{children}</>;
 };

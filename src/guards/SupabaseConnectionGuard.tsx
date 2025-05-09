@@ -5,24 +5,45 @@ import { useAuthContext } from "../context/supabase/supaBaseConnectionCtx";
 // Define common pages that are accessible to all roles
 const commonPages = [
   "/jobs",
-  "/users",
   "/profile",
   "/settings",
   "/leaves",
   "/recordings",
   "/registrations",
-  "/vue-more/1",
+  "/vue-more",
   "/home",
   "/CreateEmployee",
-
 ];
 
 // Define role-specific pages
 const rolePages = {
-  admin: ["/home", "/jobs", "/leaves", "/recordings", "registrations","/vue-more/1"],
+  admin: [
+    "/home",
+    "/jobs",
+    "/leaves",
+    "/recordings",
+    "registrations",
+    "/vue-more",
+  ],
   employee: {
-    verified: ["/users", "/leaves", "/recordings","jobs" ,"/vue-more/1" ,"/home","/CreateEmployee"],
-    unverified: ["/jobs", "/leaves", "/recordings", "/jobs","/vue-more/1","/home","/CreateEmployee"],
+    verified: [
+      "/users",
+      "/leaves",
+      "/recordings",
+      "jobs",
+      "/vue-more",
+      "/home",
+      "/CreateEmployee",
+    ],
+    unverified: [
+      "/jobs",
+      "/leaves",
+      "/recordings",
+      "/jobs",
+      "/vue-more",
+      "/home",
+      "/CreateEmployee",
+    ],
   },
 };
 
@@ -35,6 +56,7 @@ export default function SupabaseConnectionGuard({
   const navigate = useNavigate();
   const location = useLocation();
 
+  console.log({ user });
   useEffect(() => {
     console.log("innn");
     if (!isInitialized && isAuthenticated && user) {
@@ -54,24 +76,24 @@ export default function SupabaseConnectionGuard({
         );
       } else {
         // For employees, check verification status
-        const employeePages = user.is_verified
-          ? rolePages.employee.verified
-          : rolePages.employee.unverified;
+        const employeePages =
+          user.verified === "approuved"
+            ? rolePages.employee.verified
+            : rolePages.employee.unverified;
         isRoleSpecificPage = employeePages.some((page) =>
           currentPath.startsWith(page)
         );
       }
-
       if (!isCommonPage && !isRoleSpecificPage) {
         // Redirect to appropriate home page based on role and verification status
         if (userRole === "admin") {
           navigate("/home");
         } else {
           // For employees, redirect based on verification status
-          if (user.is_verified) {
+          if (user.verified !== "pending") {
             navigate("/users");
           } else {
-            navigate("/verification");
+            navigate("/jobs");
           }
         }
       }

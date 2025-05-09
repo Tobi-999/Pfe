@@ -148,7 +148,7 @@ export function SupaBaseConnectionProvider({ children }: AuthProviderProps) {
       }
       const { data: userData, error: errorGetProfile } = await supabase
         .from("profiles")
-        .select(`first_name, role`)
+        .select("*")
         .eq("id", user.id)
         .single();
 
@@ -205,7 +205,7 @@ export function SupaBaseConnectionProvider({ children }: AuthProviderProps) {
 
       const { data: userData, error: errorGetProfile } = await supabase
         .from("profiles")
-        .select(`first_name, user_role`)
+        .select("*")
         .eq("id", user.id)
         .single();
 
@@ -217,7 +217,7 @@ export function SupaBaseConnectionProvider({ children }: AuthProviderProps) {
         payload: {
           isInitialized: false,
           isAuthenticated: true,
-          user: null,
+          user: userData,
         },
       });
       return;

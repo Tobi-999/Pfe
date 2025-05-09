@@ -53,7 +53,6 @@ export default function Login() {
         duration: 3, // Display for 3 seconds
       });
       localStorage.setItem("userEmail", email);
-      navigate("/dashboard");
     }
   };
 

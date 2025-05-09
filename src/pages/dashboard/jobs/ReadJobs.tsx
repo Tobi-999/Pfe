@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../../../supabase/SupaBase";
+import { useAuthContext } from "../../../context";
 
 interface Job {
   id: number;
@@ -13,16 +14,34 @@ interface Job {
   department: "it" | "business" | "design";
 }
 
+interface Employee {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  role: string;
+  job_id: number;
+  created_at: string;
+}
+
 function ReadJobs() {
   const [activeSection, setActiveSection] = useState("about");
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuthContext();
 
   useEffect(() => {
     fetchJob();
   }, [id]);
+
+  useEffect(() => {
+    if (activeSection === "members") {
+      fetchEmployees();
+    }
+  }, [activeSection, id]);
 
   const fetchJob = async () => {
     try {
@@ -39,6 +58,20 @@ function ReadJobs() {
       console.error("Error fetching job:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchEmployees = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("employees")
+        .select("*")
+        .eq("job_id", id);
+
+      if (error) throw error;
+      setEmployees(data || []);
+    } catch (error) {
+      console.error("Error fetching employees:", error);
     }
   };
 
@@ -102,6 +135,8 @@ function ReadJobs() {
         </div>
       </div>
 
+      {/* Apply Button */}
+
       {/* Buttons Section */}
       <div className="flex gap-4 mb-4">
         <button
@@ -114,15 +149,23 @@ function ReadJobs() {
         >
           Job brief
         </button>
+        {user?.role === "admin" && (
+          <button
+            className={`px-4 py-2 font-medium rounded-lg ${
+              activeSection === "members"
+                ? "bg-white text-black"
+                : "bg-gray-100 text-gray-700"
+            }`}
+            onClick={() => setActiveSection("members")}
+          >
+            Members
+          </button>
+        )}
         <button
-          className={`px-4 py-2 font-medium rounded-lg ${
-            activeSection === "members"
-              ? "bg-white text-black"
-              : "bg-gray-100 text-gray-700"
-          }`}
-          onClick={() => setActiveSection("members")}
+          className="  py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors"
+          onClick={() => navigate(`/jobs/apply/${id}`)}
         >
-          Members
+          Apply for this position
         </button>
       </div>
 
@@ -146,10 +189,53 @@ function ReadJobs() {
       )}
 
       {activeSection === "members" && (
-        <div>
-          <div className="text-gray-500 text-center py-8">
-            Members section coming soon...
-          </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white rounded-lg overflow-hidden">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Email
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Role
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Join Date
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {employees.map((employee) => (
+                <tr key={employee.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {employee.first_name} {employee.last_name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {employee.email}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {employee.role}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {new Date(employee.created_at).toLocaleDateString()}
+                  </td>
+                </tr>
+              ))}
+              {employees.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
+                    No employees found for this job
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
@@ -157,5 +243,3 @@ function ReadJobs() {
 }
 
 export default ReadJobs;
-
-

@@ -18,7 +18,7 @@ const routes = [
   },
   {
     exact: true,
-    path: "/ReadJobs/:id",
+    path: "/vue-more/:id",
     component: lazy(() => import("../pages/Dashboard/jobs/ReadJobs")),
     layout: lazy(() => import("../layout/Dashboard")),
     guard: lazy(() => import("../guards/SupabaseConnectionGuard")),
@@ -70,7 +70,7 @@ const routes = [
   },
   {
     exact: true,
-    path: "/vue-more/1",
+    path: "/vue-more/:id",
     component: lazy(() => import("../VueMore")),
     layout: lazy(() => import("../layout/Dashboard")),
     guard: lazy(() => import("../guards/SupabaseConnectionGuard")),
@@ -92,7 +92,7 @@ const routes = [
   },
   {
     exact: true,
-    path: "/CreateEmployee",
+    path: "/jobs/apply/:id",
     component: lazy(() => import("../pages/Dashboard/Employee/CreateEmployee")),
     layout: lazy(() => import("../layout/Dashboard")),
     guard: lazy(() => import("../guards/SupabaseConnectionGuard")),

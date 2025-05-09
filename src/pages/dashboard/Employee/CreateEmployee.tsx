@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
-import countries from 'world-countries'; // Ensure this package is installed or use a similar dataset
-import Flag from 'react-world-flags'; // Ensure react-world-flags is installed
-import * as Yup from 'yup'; // Ensure Yup is imported
-import * as XLSX from 'xlsx'; // Import xlsx for Excel export
-import { toast } from 'sonner'; // Import Sonner for notifications
-import { Clock, Mail } from 'lucide-react'; // Import the Clock and Mail icons from lucide-react
-import { createClient } from '@supabase/supabase-js'; // Import Supabase client
+import React, { useState } from "react";
+import countries from "world-countries"; // Ensure this package is installed or use a similar dataset
+import Flag from "react-world-flags"; // Ensure react-world-flags is installed
+import * as Yup from "yup"; // Ensure Yup is imported
+import * as XLSX from "xlsx"; // Import xlsx for Excel export
+import { toast } from "sonner"; // Import Sonner for notifications
+import { Clock, Mail } from "lucide-react"; // Import the Clock and Mail icons from lucide-react
+import { createClient } from "@supabase/supabase-js"; // Import Supabase client
+import { useParams } from "react-router-dom";
+import { useAuthContext } from "../../../context";
 
 const generateValidationSchema = (fields: typeof formData) => {
   const schema: Record<string, Yup.AnySchema> = {};
 
   Object.keys(fields).forEach((key) => {
-    if (typeof fields[key] === 'string') {
+    if (typeof fields[key] === "string") {
       schema[key] = Yup.string()
         .required(`${key} is required`)
         .matches(/^[A-Z]/, `${key} must start with a capital letter`);
@@ -24,20 +26,26 @@ const generateValidationSchema = (fields: typeof formData) => {
 };
 
 // Initialize Supabase client
-const supabase = createClient('https://jgqhkvlhqsxobscfsfkv.supabase.co', "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpncWhrdmxocXN4b2JzY2ZzZmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyOTA1NjQsImV4cCI6MjA1Nzg2NjU2NH0.TX0xSmGL5tArOgwLq24UlBQit3AYNMxyCGb8B7AvRmw");
+const supabase = createClient(
+  "https://jgqhkvlhqsxobscfsfkv.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpncWhrdmxocXN4b2JzY2ZzZmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyOTA1NjQsImV4cCI6MjA1Nzg2NjU2NH0.TX0xSmGL5tArOgwLq24UlBQit3AYNMxyCGb8B7AvRmw"
+);
 
 export default function CreateEmployee() {
+  const { id: jobId } = useParams(); // Get job ID from URL
+  const { user } = useAuthContext(); // Get user from auth context
+
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    role: '',
-    country: '',
-    timezone: '',
-    bio: '',
+    firstName: "",
+    lastName: "",
+    email: "",
+    role: "",
+    country: "",
+    timezone: "",
+    bio: "",
     resume: null as File | null,
     motivationalLetter: null as File | null,
-    countryFlag: '', // Field to store the selected country's flag code
+    countryFlag: "", // Field to store the selected country's flag code
     image: null as File | null, // Field to store the selected image file
   });
 
@@ -47,7 +55,11 @@ export default function CreateEmployee() {
 
   const validationSchema = generateValidationSchema(formData); // Generate schema dynamically
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
@@ -61,16 +73,16 @@ export default function CreateEmployee() {
 
   const resetForm = () => {
     setFormData({
-      firstName: '',
-      lastName: '',
-      email: '',
-      role: '',
-      country: '',
-      timezone: '',
-      bio: '',
+      firstName: "",
+      lastName: "",
+      email: "",
+      role: "",
+      country: "",
+      timezone: "",
+      bio: "",
       resume: null,
       motivationalLetter: null,
-      countryFlag: '',
+      countryFlag: "",
       image: null,
     });
     setErrors({});
@@ -95,20 +107,26 @@ export default function CreateEmployee() {
         timezone: formData.timezone,
         bio: formData.bio,
         resume: formData.resume ? formData.resume.name : null, // Replace with actual file URL if uploaded
-        motivational_letter: formData.motivationalLetter ? formData.motivationalLetter.name : null, // Replace with actual file URL if uploaded
+        motivational_letter: formData.motivationalLetter
+          ? formData.motivationalLetter.name
+          : null, // Replace with actual file URL if uploaded
         country_flag: formData.countryFlag,
         image: formData.image ? formData.image.name : null, // Replace with actual file URL if uploaded
+        job_id: jobId, // Add job ID from URL
+        profile_id: user?.id, // Add employee ID from auth context
       };
 
       // Insert data into the employees table
-      const { data, error } = await supabase.from('employees').insert([employeeData]);
+      const { data, error } = await supabase
+        .from("employees")
+        .insert([employeeData]);
 
       if (error) {
         throw error;
       }
 
-      console.log('Employee created:', data);
-      toast.success('Employee created successfully!');
+      console.log("Employee created:", data);
+      toast.success("Employee created successfully!");
       resetForm(); // Reset the form after successful submission
     } catch (error) {
       if (error instanceof Yup.ValidationError) {
@@ -120,8 +138,8 @@ export default function CreateEmployee() {
         });
         setErrors(errorMessages);
       } else {
-        toast.error('Failed to create employee. Please try again.');
-        console.error('Error creating employee:', error);
+        toast.error("Failed to create employee. Please try again.");
+        console.error("Error creating employee:", error);
       }
     } finally {
       setIsSubmitting(false);
@@ -132,8 +150,8 @@ export default function CreateEmployee() {
     const dataToExport = [formData]; // Convert form data to an array for export
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Employee Data');
-    XLSX.writeFile(workbook, 'EmployeeData.xlsx'); // Save as Excel file
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Employee Data");
+    XLSX.writeFile(workbook, "EmployeeData.xlsx"); // Save as Excel file
   };
 
   return (
@@ -149,14 +167,21 @@ export default function CreateEmployee() {
           </button>
         </div>
       </div>
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg space-y-6">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-8 rounded-lg space-y-6"
+      >
         <div>
           <h2 className="text-lg font-semibold mb-2">Personal info</h2>
-          <p className="text-sm text-gray-500 mb-4">Update your photo and personal details here.</p>
+          <p className="text-sm text-gray-500 mb-4">
+            Update your photo and personal details here.
+          </p>
           <hr className="border-gray-300 mb-4" />
           <div className="flex items-center gap-6">
             <label className="text-sm font-medium w-1/5 text-left">Name</label>
-            <div className="flex gap-4" style={{ width: "655px" }}> {/* Updated layout */}
+            <div className="flex gap-4" style={{ width: "655px" }}>
+              {" "}
+              {/* Updated layout */}
               <input
                 type="text"
                 name="firstName"
@@ -177,11 +202,17 @@ export default function CreateEmployee() {
               />
             </div>
           </div>
-          {errors.firstName && <p className="text-red-500 text-sm mt-2">{errors.firstName}</p>}
-          {errors.lastName && <p className="text-red-500 text-sm mt-2">{errors.lastName}</p>}
+          {errors.firstName && (
+            <p className="text-red-500 text-sm mt-2">{errors.firstName}</p>
+          )}
+          {errors.lastName && (
+            <p className="text-red-500 text-sm mt-2">{errors.lastName}</p>
+          )}
         </div>
         <div className="flex items-center gap-6 mt-6">
-          <label className="text-sm font-medium w-1/5 text-left">Email Address</label>
+          <label className="text-sm font-medium w-1/5 text-left">
+            Email Address
+          </label>
           <div style={{ width: "655px" }} className="relative">
             <input
               type="email"
@@ -193,12 +224,18 @@ export default function CreateEmployee() {
               required
             />
             <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+            {errors.email && (
+              <p className="text-red-500 text-sm">{errors.email}</p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-6 mt-6">
-          <label className="text-sm font-medium w-1/5 text-left">Upload Image</label>
-          <div className="w-1/2"> {/* Increased width */}
+          <label className="text-sm font-medium w-1/5 text-left">
+            Upload Image
+          </label>
+          <div className="w-1/2">
+            {" "}
+            {/* Increased width */}
             <div className="flex items-center gap-4">
               <div className="w-20 h-20 rounded-full bg-600 shadow-inner shrink-0 overflow-hidden">
                 {formData.image && (
@@ -245,7 +282,9 @@ export default function CreateEmployee() {
         </div>
         <div className="flex items-center gap-6 mt-6">
           <label className="text-sm font-medium w-1/5 text-left">Role</label>
-          <div style={{ width: "655px" }}> {/* Updated width */}
+          <div style={{ width: "655px" }}>
+            {" "}
+            {/* Updated width */}
             <input
               type="text"
               name="role"
@@ -255,7 +294,9 @@ export default function CreateEmployee() {
               placeholder="Enter your role"
               required
             />
-            {errors.role && <p className="text-red-500 text-sm">{errors.role}</p>}
+            {errors.role && (
+              <p className="text-red-500 text-sm">{errors.role}</p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-6 mt-6">
@@ -267,7 +308,10 @@ export default function CreateEmployee() {
               className="w-full border rounded-lg px-4 py-2 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white flex items-center"
             >
               {formData.countryFlag && (
-                <Flag code={formData.countryFlag} style={{ width: '20px', marginRight: '8px' }} />
+                <Flag
+                  code={formData.countryFlag}
+                  style={{ width: "20px", marginRight: "8px" }}
+                />
               )}
               {formData.country || "Select a country"}
             </button>
@@ -286,7 +330,10 @@ export default function CreateEmployee() {
                       setIsCountryDropdownOpen(false);
                     }}
                   >
-                    <Flag code={country.cca2} style={{ width: '20px', marginRight: '8px' }} />
+                    <Flag
+                      code={country.cca2}
+                      style={{ width: "20px", marginRight: "8px" }}
+                    />
                     <span>{country.name.common}</span>
                   </div>
                 ))}
@@ -295,7 +342,9 @@ export default function CreateEmployee() {
           </div>
         </div>
         <div className="flex items-center gap-6 mt-6">
-          <label className="text-sm font-medium w-1/5 text-left">Timezone</label>
+          <label className="text-sm font-medium w-1/5 text-left">
+            Timezone
+          </label>
           <div style={{ width: "655px" }} className="relative">
             <select
               name="timezone"
@@ -304,7 +353,9 @@ export default function CreateEmployee() {
               className="w-full border rounded-lg px-4 py-2 pl-10 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 hover:border-blue-500 transition-all duration-300 focus:outline-none focus:border-transparent focus:shadow-lg"
               required
             >
-              <option value="" disabled>Select your timezone</option>
+              <option value="" disabled>
+                Select your timezone
+              </option>
               <option value="UTC-12:00">UTC-12:00</option>
               <option value="UTC-11:00">UTC-11:00</option>
               <option value="UTC-10:00">UTC-10:00</option>
@@ -332,7 +383,9 @@ export default function CreateEmployee() {
               <option value="UTC+12:00">UTC+12:00</option>
             </select>
             <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            {errors.timezone && <p className="text-red-500 text-sm">{errors.timezone}</p>}
+            {errors.timezone && (
+              <p className="text-red-500 text-sm">{errors.timezone}</p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-6 mt-6">
@@ -350,21 +403,31 @@ export default function CreateEmployee() {
               rows={4}
               placeholder="Write a short introduction..."
             />
-            <p className={`text-sm mt-1 ${formData.bio.length >= 1000 ? 'text-red-500' : 'text-gray-500'}`}>
+            <p
+              className={`text-sm mt-1 ${
+                formData.bio.length >= 1000 ? "text-red-500" : "text-gray-500"
+              }`}
+            >
               {1000 - formData.bio.length} characters left
             </p>
             {formData.bio.length >= 1000 && (
-              <p className="text-red-500 text-sm mt-1">You have reached the maximum character limit.</p>
+              <p className="text-red-500 text-sm mt-1">
+                You have reached the maximum character limit.
+              </p>
             )}
             {errors.bio && <p className="text-red-500 text-sm">{errors.bio}</p>}
           </div>
         </div>
         <div className="flex items-center gap-6 mt-6">
-          <label className="text-sm font-medium w-1/5 text-left">Upload Resume</label>
+          <label className="text-sm font-medium w-1/5 text-left">
+            Upload Resume
+          </label>
           <div style={{ width: "655px" }}>
             <div
               className={`border-dashed border-2 rounded-lg p-4 text-center ${
-                formData.resume ? "bg-green-100 border-green-500" : "border-gray-300"
+                formData.resume
+                  ? "bg-green-100 border-green-500"
+                  : "border-gray-300"
               }`}
             >
               <input
@@ -374,19 +437,28 @@ export default function CreateEmployee() {
                 className="hidden"
                 id="resume-upload"
               />
-              <label htmlFor="resume-upload" className="cursor-pointer text-blue-500">
+              <label
+                htmlFor="resume-upload"
+                className="cursor-pointer text-blue-500"
+              >
                 Click to upload or drag and drop
               </label>
-              <p className="text-sm text-gray-500">SVG, PNG, JPG or GIF (max. 800x400px)</p>
+              <p className="text-sm text-gray-500">
+                SVG, PNG, JPG or GIF (max. 800x400px)
+              </p>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-6 mt-6">
-          <label className="text-sm font-medium w-1/5 text-left">Motivational Letter</label>
+          <label className="text-sm font-medium w-1/5 text-left">
+            Motivational Letter
+          </label>
           <div style={{ width: "655px" }}>
             <div
               className={`border-dashed border-2 rounded-lg p-4 text-center ${
-                formData.motivationalLetter ? "bg-green-100 border-green-500" : "border-gray-300"
+                formData.motivationalLetter
+                  ? "bg-green-100 border-green-500"
+                  : "border-gray-300"
               }`}
             >
               <input
@@ -396,10 +468,15 @@ export default function CreateEmployee() {
                 className="hidden"
                 id="motivational-letter-upload"
               />
-              <label htmlFor="motivational-letter-upload" className="cursor-pointer text-blue-500">
+              <label
+                htmlFor="motivational-letter-upload"
+                className="cursor-pointer text-blue-500"
+              >
                 Click to upload or drag and drop
               </label>
-              <p className="text-sm text-gray-500">SVG, PNG, JPG or GIF (max. 800x400px)</p>
+              <p className="text-sm text-gray-500">
+                SVG, PNG, JPG or GIF (max. 800x400px)
+              </p>
             </div>
           </div>
         </div>
@@ -415,8 +492,8 @@ export default function CreateEmployee() {
             type="submit"
             className={`py-2 px-4 rounded-lg text-white shadow-lg ${
               isSubmitting
-                ? 'bg-gradient-to-r from-purple-400 to-blue-400 cursor-not-allowed'
-                : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-blue-600 hover:to-purple-600 transition-all duration-300'
+                ? "bg-gradient-to-r from-purple-400 to-blue-400 cursor-not-allowed"
+                : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-blue-600 hover:to-purple-600 transition-all duration-300"
             }`}
             disabled={isSubmitting}
           >
