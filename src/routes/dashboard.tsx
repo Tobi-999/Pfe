@@ -97,6 +97,8 @@ const routes = [
     layout: lazy(() => import("../layout/Dashboard")),
     guard: lazy(() => import("../guards/SupabaseConnectionGuard")),
   },
+   
+
 ];
 
 export default routes;

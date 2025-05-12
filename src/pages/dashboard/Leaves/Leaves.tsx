@@ -1,111 +1,218 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, CloudDownload, Check, X, Trash2 } from "lucide-react";
-import * as XLSX from "xlsx"; // Import xlsx library
+import * as XLSX from "xlsx";
+import { createClient } from "@supabase/supabase-js";
 
-const Home = () => {
-  const allData = Array.from({ length: 100 }, (_, index) => ({
-    key: index + 1,
-    name: `User ${index + 1}`,
-    role: "Product Designer",
-    leaveType: "Vacation",
-    startDate: "02/19/2025",
-    endDate: "02/23/2025",
-    duration: "4 days",
-    status: index % 2 === 0 ? "Pending" : "Approved",
-  }));
+// --- Supabase Setup ---
+const supabaseUrl = 'https://jgqhkvlhqsxobscfsfkv.supabase.co';
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpncWhrdmxocXN4b2JzY2ZzZmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyOTA1NjQsImV4cCI6MjA1Nzg2NjU2NH0.TX0xSmGL5tArOgwLq24UlBQit3AYNMxyCGb8B7AvRmw";
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-  // useState: Manages state for various components
-  const [data, setData] = useState(allData.slice(0, 10)); 
-  // Holds the current page's data (initially the first 10 items).
+// --- Utility Functions ---
+const getDuration = (start, end) => {
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+  return Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + " days";
+};
 
-  const [currentPage, setCurrentPage] = useState(1); 
-  // Tracks the current page number for pagination.
+const getStatusColor = (status) => {
+  if (status === "Pending") return "text-orange-500";
+  if (status === "Rejected") return "text-red-500";
+  return "text-green-600";
+};
 
-  const [searchTerm, setSearchTerm] = useState(""); 
-  // Stores the search input value for filtering data.
+// --- Dialog Components ---
+const ConfirmDialog = ({
+  open,
+  icon,
+  iconBg,
+  iconColor,
+  title,
+  message,
+  confirmLabel,
+  confirmColor,
+  onCancel,
+  onConfirm,
+}) =>
+  open ? (
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+        <div className="flex items-center gap-2 mb-4">
+          <div className={`w-10 h-10 ${iconBg} rounded-full flex items-center justify-center`}>
+            {React.cloneElement(icon, { size: 20, className: iconColor })}
+          </div>
+          <h2 className="text-lg font-semibold">{title}</h2>
+        </div>
+        <p className="text-gray-500 text-sm mb-6">{message}</p>
+        <div className="flex justify-end gap-4">
+          <button
+            className="px-4 py-2 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 transition-all"
+            onClick={onCancel}
+          >
+            Cancel
+          </button>
+          <button
+            className={`px-4 py-2 ${confirmColor} text-white rounded-lg hover:opacity-90 transition-all`}
+            onClick={onConfirm}
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  ) : null;
 
-  const [selectAll, setSelectAll] = useState(false); 
-  // Tracks whether the "Select All" checkbox is checked.
+// --- Main Component ---
+const Leaves = () => {
+  const [allData, setAllData] = useState([]);
+  const [data, setData] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectAll, setSelectAll] = useState(false);
 
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false); // Tracks dialog visibility
-  const [rowToDelete, setRowToDelete] = useState(null); // Tracks the row to delete
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [rowToReject, setRowToReject] = useState(null);
 
-  const [showApproveDialog, setShowApproveDialog] = useState(false); // Tracks approve dialog visibility
-  const [rowToApprove, setRowToApprove] = useState(null); // Tracks the row to approve
+  const [showApproveDialog, setShowApproveDialog] = useState(false);
+  const [rowToApprove, setRowToApprove] = useState(null);
 
+  // --- Fetch Data ---
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data: leaves, error } = await supabase.from("leaves").select("*");
+      if (error) {
+        console.error("Error fetching data:", error);
+        return;
+      }
+      const processed = leaves.map((item) => ({
+        ...item,
+        duration: getDuration(item.startDate, item.endDate),
+      }));
+      setAllData(processed);
+      setData(processed.slice(0, 10));
+    };
+    fetchData();
+  }, []);
+
+  // --- Handlers ---
   const handleSearch = (e) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
-    const filteredData = allData.filter((item) =>
+    const filtered = allData.filter((item) =>
       item.name.toLowerCase().includes(value)
     );
-    setData(filteredData.slice(0, 10));
+    setData(filtered.slice(0, 10));
     setCurrentPage(1);
   };
 
   const handlePageChange = (page) => {
     const startIndex = (page - 1) * 10;
-    const filteredData = allData.filter((item) =>
+    const filtered = allData.filter((item) =>
       item.name.toLowerCase().includes(searchTerm)
     );
-    setData(filteredData.slice(startIndex, startIndex + 10));
+    setData(filtered.slice(startIndex, startIndex + 10));
     setCurrentPage(page);
   };
 
   const toggleSelectAll = (isChecked) => {
     setSelectAll(isChecked);
-    allData.forEach((item) => (item.isChecked = isChecked)); // Update allData globally
-    setData(allData.slice((currentPage - 1) * 10, currentPage * 10)); // Update current page data
+    setAllData((prev) =>
+      prev.map((item, idx) => ({
+        ...item,
+        isChecked: isChecked,
+      }))
+    );
+    setData((prev) =>
+      prev.map((item) => ({
+        ...item,
+        isChecked: isChecked,
+      }))
+    );
   };
 
-  const toggleCheckbox = (key) => {
-    allData.forEach((item) => {
-      if (item.key === key) {
-        item.isChecked = !item.isChecked; // Update global state
+  const toggleCheckbox = (id) => {
+    setAllData((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, isChecked: !item.isChecked } : item
+      )
+    );
+    setData((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, isChecked: !item.isChecked } : item
+      )
+    );
+  };
+
+  // --- Reject Logic ---
+  const confirmReject = (id) => {
+    setRowToReject(id);
+    setShowRejectDialog(true);
+  };
+
+  const handleReject = async () => {
+    try {
+      const { error } = await supabase
+        .from("leaves")
+        .update({ status: "Rejected" })
+        .eq("id", rowToReject);
+      if (error) {
+        console.error("Error updating status:", error);
+        return;
       }
-    });
-    setData(allData.slice((currentPage - 1) * 10, currentPage * 10)); // Update current page data
+      setAllData((prev) =>
+        prev.map((item) =>
+          item.id === rowToReject ? { ...item, status: "Rejected" } : item
+        )
+      );
+      setData((prev) =>
+        prev.map((item) =>
+          item.id === rowToReject ? { ...item, status: "Rejected" } : item
+        )
+      );
+      setShowRejectDialog(false);
+      setRowToReject(null);
+    } catch (err) {
+      console.error("Unexpected error:", err);
+    }
   };
 
-  const confirmDelete = (key) => {
-    setRowToDelete(key);
-    setShowDeleteDialog(true);
-  };
-
-  const handleDelete = () => {
-    setData((prevData) => prevData.filter((item) => item.key !== rowToDelete));
-    setShowDeleteDialog(false);
-    setRowToDelete(null);
-  };
-
-  const cancelDelete = () => {
-    setShowDeleteDialog(false);
-    setRowToDelete(null);
-  };
-
-  const confirmApprove = (key) => {
-    setRowToApprove(key);
+  // --- Approve Logic ---
+  const confirmApprove = (id) => {
+    setRowToApprove(id);
     setShowApproveDialog(true);
   };
 
-  const handleApprove = () => {
-    setData((prevData) =>
-      prevData.map((item) =>
-        item.key === rowToApprove ? { ...item, status: "Approved" } : item
-      )
-    );
-    setShowApproveDialog(false);
-    setRowToApprove(null);
+  const handleApprove = async () => {
+    try {
+      const { error } = await supabase
+        .from("leaves")
+        .update({ status: "Approved" })
+        .eq("id", rowToApprove);
+      if (error) {
+        console.error("Error updating status:", error);
+        return;
+      }
+      setAllData((prev) =>
+        prev.map((item) =>
+          item.id === rowToApprove ? { ...item, status: "Approved" } : item
+        )
+      );
+      setData((prev) =>
+        prev.map((item) =>
+          item.id === rowToApprove ? { ...item, status: "Approved" } : item
+        )
+      );
+      setShowApproveDialog(false);
+      setRowToApprove(null);
+    } catch (err) {
+      console.error("Unexpected error:", err);
+    }
   };
 
-  const cancelApprove = () => {
-    setShowApproveDialog(false);
-    setRowToApprove(null);
-  };
-
+  // --- Export ---
   const exportToExcel = () => {
     const worksheetData = [
-      ["Name", "Leave Type", "Start Date", "End Date", "Duration", "Status"], // Table headers
+      ["Name", "Leave Type", "Start Date", "End Date", "Duration", "Status"],
       ...allData.map((item) => [
         item.name,
         item.leaveType,
@@ -115,28 +222,31 @@ const Home = () => {
         item.status,
       ]),
     ];
-
     const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "LeavesTable");
     XLSX.writeFile(workbook, "LeavesTable.xlsx");
   };
 
+  // --- Render ---
   return (
     <div className="absolute inset-0 ml-64 p-6 bg-white rounded-lg shadow-md">
+      {/* Header */}
       <header className="flex justify-between items-center mb-4">
         <h1 className="text-xl font-semibold">Home</h1>
         <button
           className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg text-gray-700 hover:bg-purple-200 hover:text-purple-700 hover:shadow-lg transition-all"
-          onClick={exportToExcel} // Attach export function
+          onClick={exportToExcel}
         >
           <CloudDownload size={16} /> Export
         </button>
       </header>
 
+      {/* Subheader */}
       <p className="text-gray-500 text-sm">Latest Leaves Request</p>
       <p className="text-gray-400 text-xs">Keep Lorem IpsumLorem IpsumLorem Ipsum Lorem</p>
 
+      {/* Search */}
       <div className="mt-4 flex justify-end">
         <div className="relative">
           <input
@@ -150,6 +260,7 @@ const Home = () => {
         </div>
       </div>
 
+      {/* Table */}
       <div className="mt-4 border rounded-lg overflow-hidden">
         <div className="overflow-y-auto max-h-[550px]">
           <table className="w-full text-sm text-left">
@@ -179,7 +290,7 @@ const Home = () => {
                     <button
                       className="p-2 rounded-lg hover:bg-green-200 hover:text-green-800 transition-all"
                       onClick={() => {
-                        setData((prevData) => prevData.filter((item) => !item.isChecked));
+                        setData((prev) => prev.filter((item) => !item.isChecked));
                         setSelectAll(false);
                       }}
                     >
@@ -192,13 +303,13 @@ const Home = () => {
             <tbody>
               {data.length > 0 ? (
                 data.map((item) => (
-                  <tr key={item.key} className="border-t hover:bg-gray-50 transition-colors">
+                  <tr key={item.id} className="border-t hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3">
                       <input
                         type="checkbox"
                         className="w-4 h-4"
                         checked={item.isChecked || false}
-                        onChange={() => toggleCheckbox(item.key)}
+                        onChange={() => toggleCheckbox(item.id)}
                       />
                     </td>
                     <td className="px-4 py-3 flex items-center gap-2">
@@ -212,23 +323,19 @@ const Home = () => {
                     <td className="px-4 py-3">{item.startDate}</td>
                     <td className="px-4 py-3">{item.endDate}</td>
                     <td className="px-4 py-3">{item.duration}</td>
-                    <td
-                      className={`px-4 py-3 ${
-                        item.status === "Pending" ? "text-orange-500" : "text-green-600"
-                      }`}
-                    >
+                    <td className={`px-4 py-3 ${getStatusColor(item.status)}`}>
                       {item.status}
                     </td>
                     <td className="px-4 py-3 flex gap-2">
                       <button
                         className="p-2 bg-purple-100 rounded-lg hover:bg-purple-200 hover:text-purple-700 hover:shadow-lg transition-all"
-                        onClick={() => confirmApprove(item.key)}
+                        onClick={() => confirmApprove(item.id)}
                       >
                         <Check size={16} className="text-purple-600" />
                       </button>
                       <button
                         className="p-2 bg-gray-100 rounded-lg hover:bg-purple-200 hover:text-purple-700 hover:shadow-lg transition-all"
-                        onClick={() => confirmDelete(item.key)}
+                        onClick={() => confirmReject(item.id)}
                       >
                         <X size={16} className="text-gray-600" />
                       </button>
@@ -237,7 +344,7 @@ const Home = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" className="px-4 py-3 text-center text-gray-500">
+                  <td colSpan={8} className="px-4 py-3 text-center text-gray-500">
                     No data available.
                   </td>
                 </tr>
@@ -247,68 +354,35 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      {showDeleteDialog && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                <X size={20} className="text-red-600" />
-              </div>
-              <h2 className="text-lg font-semibold">Are you sure?</h2>
-            </div>
-            <p className="text-gray-500 text-sm mb-6">
-              Are you sure you want to delete this row? This action cannot be undone.
-            </p>
-            <div className="flex justify-end gap-4">
-              <button
-                className="px-4 py-2 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 transition-all"
-                onClick={cancelDelete}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all"
-                onClick={handleDelete}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Reject Dialog */}
+      <ConfirmDialog
+        open={showRejectDialog}
+        icon={<X />}
+        iconBg="bg-red-100"
+        iconColor="text-red-600"
+        title="Are you sure?"
+        message="Are you sure you want to Reject this leave? This action cannot be undone."
+        confirmLabel="Reject"
+        confirmColor="bg-red-500 hover:bg-red-600"
+        onCancel={() => setShowRejectDialog(false)}
+        onConfirm={handleReject}
+      />
 
-      {/* Approve Confirmation Dialog */}
-      {showApproveDialog && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                <Check size={20} className="text-green-600" />
-              </div>
-              <h2 className="text-lg font-semibold">Approve Request</h2>
-            </div>
-            <p className="text-gray-500 text-sm mb-6">
-              Are you sure you want to approve this request? This action cannot be undone.
-            </p>
-            <div className="flex justify-end gap-4">
-              <button
-                className="px-4 py-2 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 transition-all"
-                onClick={cancelApprove}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all"
-                onClick={handleApprove}
-              >
-                Approve
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Approve Dialog */}
+      <ConfirmDialog
+        open={showApproveDialog}
+        icon={<Check />}
+        iconBg="bg-green-100"
+        iconColor="text-green-600"
+        title="Approve Request"
+        message="Are you sure you want to approve this request? This action cannot be undone."
+        confirmLabel="Approve"
+        confirmColor="bg-green-500 hover:bg-green-600"
+        onCancel={() => setShowApproveDialog(false)}
+        onConfirm={handleApprove}
+      />
 
+      {/* Pagination */}
       <footer className="mt-4 flex justify-between items-center">
         <button
           className="flex items-center gap-2 px-4 py-2 text-gray-600 rounded-lg hover:bg-purple-200 hover:text-purple-700 hover:shadow-lg transition-all"
@@ -344,4 +418,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Leaves;
