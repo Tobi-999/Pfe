@@ -6,8 +6,7 @@ import { supabase } from "../../../supabase/SupaBase";
 import { message } from "antd";
 import { toast } from "sonner";
 
-// todo add field called department (select either it business or desing)
-// todo add fied called ends_at (date)
+
 
 const schema = yup.object().shape({
   jobName: yup.string().required("Job name is required"),

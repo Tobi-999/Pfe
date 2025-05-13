@@ -4,6 +4,7 @@ import { Pencil, Trash2, Share2 } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "../../../supabase/SupaBase";
 
+// Types
 interface Job {
   id: number;
   title: string;
@@ -15,9 +16,10 @@ interface Job {
   category: "it" | "business" | "design";
 }
 
+// Constants
 const categories = ["View all", "it", "business", "design"];
 
-// JobCard Component
+// Components
 function JobCard({
   job,
   onDelete,
@@ -27,7 +29,7 @@ function JobCard({
   onDelete: (jobId: number) => void;
   onShare: (jobTitle: string) => void;
 }) {
-  console.log(job);
+  const navigate = useNavigate(); // Add this line
 
   const endsAt = new Date(job?.ends_at);
   const now = new Date();
@@ -43,10 +45,11 @@ function JobCard({
     status === "open"
       ? "text-green-700 bg-green-100"
       : "text-red-700 bg-red-100";
-  console.log("Status:", status);
 
   return (
-    <div className="max-w-sm bg-white rounded-lg p-4 border border-gray-200 transition-transform transform hover:scale-105 hover:shadow-xl relative">
+    <div
+      className="max-w-sm bg-white rounded-lg p-4 border border-gray-200 shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 hover:-translate-y-2 hover:shadow-[0_10px_32px_0_rgba(124,58,237,0.18)] relative"
+    >
       <div className="flex justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-purple-600 rounded-lg">
@@ -65,7 +68,10 @@ function JobCard({
             className="w-5 h-5 text-purple-500 cursor-pointer"
             onClick={() => onShare(job.title)}
           />
-          <Pencil className="w-5 h-5 text-purple-500 cursor-pointer" />
+          <Pencil
+            className="w-5 h-5 text-purple-500 cursor-pointer"
+            onClick={() => navigate(`//${job.id}`)}
+          />
           <Trash2
             className="w-5 h-5 text-purple-500 cursor-pointer"
             onClick={() => onDelete(job.id)}
@@ -85,17 +91,19 @@ function JobCard({
         </span>
       </div>
       <hr className="my-2 border-gray-300" />
-      <Link
-        to={`/vue-more/${job.id}`}
-        className="text-sm font-medium text-purple-600 cursor-pointer hover:underline absolute bottom-4 right-4"
-      >
-        See More
-      </Link>
+      <div className="flex justify-end">
+        <Link
+          to={`/vue-more/${job.id}`}
+          className="text-sm font-medium text-purple-600 cursor-pointer hover:underline mt-2 block"
+        >
+          See More
+        </Link>
+      </div>
     </div>
   );
 }
 
-// Main JobListing Component
+// Main Component
 export default function JobListing() {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("View all");
@@ -119,7 +127,6 @@ export default function JobListing() {
       }
 
       const { data, error } = await query;
-
       if (error) throw error;
       setJobs(data || []);
     } catch (error) {
@@ -136,7 +143,6 @@ export default function JobListing() {
   const handleDeleteJob = async (jobId: number) => {
     try {
       const { error } = await supabase.from("jobs").delete().eq("id", jobId);
-
       if (error) throw error;
       setJobs(jobs.filter((job) => job.id !== jobId));
     } catch (error) {

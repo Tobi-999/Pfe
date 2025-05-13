@@ -5,13 +5,14 @@ export default function MotivationalLetter() {
   const navigate = useNavigate();
 
   return (
-    <div className="w-full px-6 py-8 space-y-10"> {/* Full width */}
-      {/* Go Back */}
+    <div className="w-full px-6 py-8 space-y-10">
+      {/* Go Back Button */}
       <button
-        onClick={() => navigate(-1)} // Go back to the previous page
+        onClick={() => navigate(-1)}
         className="flex items-center text-sm text-gray-600 hover:text-gray-800 gap-1"
       >
-        <ArrowLeft className="w-4 h-4" /> Go Back
+        <ArrowLeft className="w-4 h-4" />
+        Go Back
       </button>
 
       {/* Header */}
@@ -30,7 +31,8 @@ export default function MotivationalLetter() {
             <MoreHorizontal className="w-5 h-5 text-gray-600" />
           </button>
           <button className="bg-purple-600 hover:bg-purple-700 text-white text-sm px-4 py-2 rounded-md flex items-center gap-2">
-            <span className="text-xl">+</span> View portfolio
+            <span className="text-xl">+</span>
+            View portfolio
           </button>
         </div>
       </div>
