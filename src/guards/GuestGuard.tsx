@@ -7,7 +7,7 @@ const GuestGuard = ({ children }: { children: React.ReactElement }) => {
 
   if (isAuthenticated) {
     if (user?.role === "admin") {
-      return <Navigate to="/admin/dashboard" />;
+      return <Navigate to="/home" />;
     } else {
       if (user?.is_verified) {
         return <Navigate to="/dashboard" />;

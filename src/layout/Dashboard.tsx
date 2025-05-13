@@ -13,7 +13,7 @@ import { useAuthContext } from "../context";
 
 const Sidebar = () => {
   const [email, setEmail] = useState("");
-  const { user } = useAuthContext();
+  const { user, logout } = useAuthContext();
 
   const [userRole, setUserRole] = useState(""); // "admin", "verified", or "unverified"
 
@@ -130,7 +130,10 @@ const Sidebar = () => {
           <LogOut
             size={20}
             className="text-gray-500 hover:text-purple-600 cursor-pointer ml-[-30px]"
-            onClick={() => (window.location.href = "/login")}
+            onClick={async () => {
+              await logout();
+              window.location.href = "/login";
+            }}
           />
         </div>
       </div>

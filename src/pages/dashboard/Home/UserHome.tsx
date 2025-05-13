@@ -1,7 +1,17 @@
-import { Sun, AlertTriangle, Lock, BriefcaseMedical, ChevronDown, Scale, MoreVertical, Search } from "lucide-react";
+import {
+  Sun,
+  AlertTriangle,
+  Lock,
+  BriefcaseMedical,
+  ChevronDown,
+  Scale,
+  MoreVertical,
+  Search,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { Toaster, toast } from "sonner";
+import { useAuthContext } from "../../../context";
 
 // --- Types ---
 type LeaveType = "Vacation" | "Sick" | "Casual" | "Personal";
@@ -17,16 +27,36 @@ interface Leave {
 }
 
 // --- Constants ---
-const leaveTypes: { type: LeaveType; icon: JSX.Element; status: LeaveStatus }[] = [
-  { type: "Vacation", icon: <Sun className="text-orange-500" />, status: "Pending" },
-  { type: "Sick", icon: <BriefcaseMedical className="text-red-500" />, status: "Approved" },
-  { type: "Casual", icon: <AlertTriangle className="text-purple-500" />, status: "Pending" },
-  { type: "Personal", icon: <Lock className="text-blue-500" />, status: "Pending" },
+const leaveTypes: {
+  type: LeaveType;
+  icon: JSX.Element;
+  status: LeaveStatus;
+}[] = [
+  {
+    type: "Vacation",
+    icon: <Sun className="text-orange-500" />,
+    status: "Pending",
+  },
+  {
+    type: "Sick",
+    icon: <BriefcaseMedical className="text-red-500" />,
+    status: "Approved",
+  },
+  {
+    type: "Casual",
+    icon: <AlertTriangle className="text-purple-500" />,
+    status: "Pending",
+  },
+  {
+    type: "Personal",
+    icon: <Lock className="text-blue-500" />,
+    status: "Pending",
+  },
 ];
 
 // --- Supabase Client ---
 const supabase = createClient(
-  'https://jgqhkvlhqsxobscfsfkv.supabase.co',
+  "https://jgqhkvlhqsxobscfsfkv.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpncWhrdmxocXN4b2JzY2ZzZmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyOTA1NjQsImV4cCI6MjA1Nzg2NjU2NH0.TX0xSmGL5tArOgwLq24UlBQit3AYNMxyCGb8B7AvRmw"
 );
 
@@ -42,15 +72,21 @@ export default function LeaveDashboard() {
   const [employeeName, setEmployeeName] = useState<string>("");
   const [employeeRole, setEmployeeRole] = useState<string>("");
 
+  const { user } = useAuthContext();
   // Fetch leaves from Supabase
   useEffect(() => {
     async function fetchLeaves() {
-      const { data, error } = await supabase.from("leaves").select("*");
+      const { data, error } = await supabase
+        .from("leaves")
+        .select("*")
+        .eq("profile_id", user?.id);
+
       if (error) {
         return;
       }
+
       setLeaves(
-        (data || []).map((leave: any) => ({
+        (data || []).map((leave: Leave) => ({
           ...leave,
           icon: getLeaveIcon(leave.type),
         }))
@@ -114,7 +150,10 @@ export default function LeaveDashboard() {
           employeeRole={employeeRole}
         />
         {isModalOpen && (
-          <ApplyLeaveModal onClose={handleCloseModal} onAddLeave={handleAddLeave} />
+          <ApplyLeaveModal
+            onClose={handleCloseModal}
+            onAddLeave={handleAddLeave}
+          />
         )}
       </div>
     </>
@@ -122,7 +161,13 @@ export default function LeaveDashboard() {
 }
 
 // --- Main Content Section ---
-function MainContent({ leaves, cardValues }: { leaves: Leave[]; cardValues: any }) {
+function MainContent({
+  leaves,
+  cardValues,
+}: {
+  leaves: Leave[];
+  cardValues: any;
+}) {
   const [selectAll, setSelectAll] = useState(false);
   const [checkedRows, setCheckedRows] = useState<boolean[]>([]);
 
@@ -162,25 +207,61 @@ function MainContent({ leaves, cardValues }: { leaves: Leave[]; cardValues: any 
 
 // --- Header ---
 function Header({ title }: { title: string }) {
-  return <h1 className="text-4xl font-extrabold text-gray-800 tracking-wide mb-6">{title}</h1>;
+  return (
+    <h1 className="text-4xl font-extrabold text-gray-800 tracking-wide mb-6">
+      {title}
+    </h1>
+  );
 }
 
 // --- Leave Balance Cards ---
 function LeaveBalanceCards({ cardValues }: { cardValues: any }) {
   const cards = [
-    { icon: <Sun className="text-orange-500 w-6 h-6" />, label: "Vacation", value: cardValues.Vacation, bg: "bg-orange-100" },
-    { icon: <AlertTriangle className="text-purple-500 w-6 h-6" />, label: "Casual", value: cardValues.Casual, bg: "bg-purple-100" },
-    { icon: <Lock className="text-blue-500 w-6 h-6" />, label: "Personal", value: cardValues.Personal, bg: "bg-blue-100" },
-    { icon: <BriefcaseMedical className="text-red-500 w-6 h-6" />, label: "Sick", value: cardValues.Sick, bg: "bg-red-100" },
+    {
+      icon: <Sun className="text-orange-500 w-6 h-6" />,
+      label: "Vacation",
+      value: cardValues.Vacation,
+      bg: "bg-orange-100",
+    },
+    {
+      icon: <AlertTriangle className="text-purple-500 w-6 h-6" />,
+      label: "Casual",
+      value: cardValues.Casual,
+      bg: "bg-purple-100",
+    },
+    {
+      icon: <Lock className="text-blue-500 w-6 h-6" />,
+      label: "Personal",
+      value: cardValues.Personal,
+      bg: "bg-blue-100",
+    },
+    {
+      icon: <BriefcaseMedical className="text-red-500 w-6 h-6" />,
+      label: "Sick",
+      value: cardValues.Sick,
+      bg: "bg-red-100",
+    },
   ];
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-      {cards.map((card, idx) => <Card key={idx} {...card} />)}
+      {cards.map((card, idx) => (
+        <Card key={idx} {...card} />
+      ))}
     </div>
   );
 }
 
-function Card({ icon, label, value, bg }: { icon: JSX.Element; label: string; value: number; bg: string }) {
+function Card({
+  icon,
+  label,
+  value,
+  bg,
+}: {
+  icon: JSX.Element;
+  label: string;
+  value: number;
+  bg: string;
+}) {
   return (
     <div className="bg-white rounded-lg shadow p-6 relative hover:shadow-lg hover:scale-105 transition-transform duration-200">
       <div className="absolute top-4 right-4">
@@ -190,7 +271,11 @@ function Card({ icon, label, value, bg }: { icon: JSX.Element; label: string; va
         <p className="text-lg font-medium text-gray-700 mb-2">{label}</p>
         <div className="flex items-center justify-between space-x-24">
           <p className="text-4xl font-bold text-gray-900">{value}</p>
-          <div className={`w-12 h-12 flex items-center justify-center rounded-full ${bg}`}>{icon}</div>
+          <div
+            className={`w-12 h-12 flex items-center justify-center rounded-full ${bg}`}
+          >
+            {icon}
+          </div>
         </div>
       </div>
     </div>
@@ -219,14 +304,24 @@ function LatestLeavesTable({
       <div className="overflow-x-auto scrollbar-hide">
         <table className="w-full min-w-[800px]">
           <TableHeader selectAll={selectAll} onSelectAll={onSelectAll} />
-          <TableBody leaves={leaves} checkedRows={checkedRows} onRowCheck={onRowCheck} />
+          <TableBody
+            leaves={leaves}
+            checkedRows={checkedRows}
+            onRowCheck={onRowCheck}
+          />
         </table>
       </div>
     </div>
   );
 }
 
-function TableHeader({ selectAll, onSelectAll }: { selectAll: boolean; onSelectAll: () => void }) {
+function TableHeader({
+  selectAll,
+  onSelectAll,
+}: {
+  selectAll: boolean;
+  onSelectAll: () => void;
+}) {
   return (
     <thead className="bg-gray-50">
       <tr>
@@ -241,9 +336,15 @@ function TableHeader({ selectAll, onSelectAll }: { selectAll: boolean; onSelectA
         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider flex items-center">
           Submission Date <ChevronDown className="w-4 h-4 ml-1" />
         </th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">From - to</th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          From - to
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Type
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Status
+        </th>
       </tr>
     </thead>
   );
@@ -273,23 +374,36 @@ function TableBody({
               onChange={() => onRowCheck(idx)}
             />
           </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{leave.date}</td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{leave.from} to {leave.to}</td>
-          <td className={`px-6 py-4 whitespace-nowrap text-sm flex items-center space-x-4 ${
-            leave.type === "Vacation" ? "text-orange-500" :
-            leave.type === "Sick" ? "text-red-500" :
-            leave.type === "Casual" ? "text-purple-500" :
-            "text-blue-500"
-          }`}>
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {leave.date}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {leave.from} to {leave.to}
+          </td>
+          <td
+            className={`px-6 py-4 whitespace-nowrap text-sm flex items-center space-x-4 ${
+              leave.type === "Vacation"
+                ? "text-orange-500"
+                : leave.type === "Sick"
+                ? "text-red-500"
+                : leave.type === "Casual"
+                ? "text-purple-500"
+                : "text-blue-500"
+            }`}
+          >
             {leave.icon}
             <span>{leave.type}</span>
           </td>
           <td className="px-6 py-4 whitespace-nowrap">
-            <span className={`px-2 py-1 text-xs rounded-full ${
-              leave.status === "Approved" ? "bg-green-100 text-green-800" :
-              leave.status === "Pending" ? "bg-yellow-100 text-yellow-800" :
-              "bg-red-100 text-red-800"
-            }`}>
+            <span
+              className={`px-2 py-1 text-xs rounded-full ${
+                leave.status === "Approved"
+                  ? "bg-green-100 text-green-800"
+                  : leave.status === "Pending"
+                  ? "bg-yellow-100 text-yellow-800"
+                  : "bg-red-100 text-red-800"
+              }`}
+            >
               {leave.status}
             </span>
           </td>
@@ -355,8 +469,17 @@ function ProfileInfo({
 }
 
 // --- Profile Actions ---
-function ProfileActions({ onApplyClick, balance }: { onApplyClick: () => void; balance: any }) {
-  const totalBalance = Object.values(balance).reduce((sum: number, count: number) => sum + count, 0);
+function ProfileActions({
+  onApplyClick,
+  balance,
+}: {
+  onApplyClick: () => void;
+  balance: any;
+}) {
+  const totalBalance = Object.values(balance).reduce(
+    (sum: number, count: number) => sum + count,
+    0
+  );
   return (
     <div className="flex flex-col items-center justify-start h-full mt-8">
       <div className="bg-white text-black p-4 rounded-lg text-center shadow-lg mb-4 flex flex-col justify-between h-32 w-full">
@@ -394,6 +517,8 @@ function ApplyLeaveModal({
   const [type, setType] = useState<LeaveType | "">("");
   const [description, setDescription] = useState("");
 
+  const { user } = useAuthContext();
+
   const handleSubmit = async () => {
     if (!from || !to || !type) {
       toast.error("Please fill all required fields.");
@@ -416,6 +541,7 @@ function ApplyLeaveModal({
         type: newLeave.type,
         status: newLeave.status,
         description,
+        profile_id: user?.id,
       },
     ]);
     if (error) {
@@ -436,12 +562,18 @@ function ApplyLeaveModal({
         >
           ×
         </button>
-        <h2 className="text-2xl font-extrabold mb-6 text-center text-purple-700 tracking-wide drop-shadow">Apply For Leave</h2>
+        <h2 className="text-2xl font-extrabold mb-6 text-center text-purple-700 tracking-wide drop-shadow">
+          Apply For Leave
+        </h2>
         <div className="mb-5">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Leave Date (From - To)</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Leave Date (From - To)
+          </label>
           <div className="flex items-center space-x-4">
             <div className="flex flex-col flex-1">
-              <span className="text-xs text-purple-500 font-bold mb-1">From</span>
+              <span className="text-xs text-purple-500 font-bold mb-1">
+                From
+              </span>
               <input
                 type="date"
                 className="w-full border-2 border-purple-200 focus:border-purple-400 rounded-xl p-2 outline-none transition-all duration-200 bg-white shadow-md hover:shadow-lg"
@@ -449,7 +581,9 @@ function ApplyLeaveModal({
                 onChange={(e) => setFrom(e.target.value)}
               />
             </div>
-            <span className="text-2xl text-purple-400 font-bold select-none">→</span>
+            <span className="text-2xl text-purple-400 font-bold select-none">
+              →
+            </span>
             <div className="flex flex-col flex-1">
               <span className="text-xs text-blue-500 font-bold mb-1">To</span>
               <input
@@ -462,7 +596,9 @@ function ApplyLeaveModal({
           </div>
         </div>
         <div className="mb-5">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Type</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Type
+          </label>
           <select
             className="w-full border-2 border-purple-200 focus:border-purple-400 rounded-lg p-2 outline-none transition-all duration-200 bg-white shadow-sm"
             value={type}
@@ -476,7 +612,9 @@ function ApplyLeaveModal({
           </select>
         </div>
         <div className="mb-6">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Description
+          </label>
           <textarea
             className="w-full border-2 border-purple-200 focus:border-purple-400 rounded-lg p-2 outline-none transition-all duration-200 bg-white shadow-sm resize-none min-h-[80px]"
             placeholder="Type..."

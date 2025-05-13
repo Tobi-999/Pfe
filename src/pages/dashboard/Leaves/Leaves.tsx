@@ -2,10 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Search, CloudDownload, Check, X, Trash2 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { createClient } from "@supabase/supabase-js";
+import { useAuthContext } from "../../../context";
 
 // --- Supabase Setup ---
-const supabaseUrl = 'https://jgqhkvlhqsxobscfsfkv.supabase.co';
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpncWhrdmxocXN4b2JzY2ZzZmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyOTA1NjQsImV4cCI6MjA1Nzg2NjU2NH0.TX0xSmGL5tArOgwLq24UlBQit3AYNMxyCGb8B7AvRmw";
+const supabaseUrl = "https://jgqhkvlhqsxobscfsfkv.supabase.co";
+const supabaseKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpncWhrdmxocXN4b2JzY2ZzZmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyOTA1NjQsImV4cCI6MjA1Nzg2NjU2NH0.TX0xSmGL5tArOgwLq24UlBQit3AYNMxyCGb8B7AvRmw";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // --- Utility Functions ---
@@ -38,7 +40,9 @@ const ConfirmDialog = ({
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-96">
         <div className="flex items-center gap-2 mb-4">
-          <div className={`w-10 h-10 ${iconBg} rounded-full flex items-center justify-center`}>
+          <div
+            className={`w-10 h-10 ${iconBg} rounded-full flex items-center justify-center`}
+          >
             {React.cloneElement(icon, { size: 20, className: iconColor })}
           </div>
           <h2 className="text-lg font-semibold">{title}</h2>
@@ -76,23 +80,48 @@ const Leaves = () => {
   const [showApproveDialog, setShowApproveDialog] = useState(false);
   const [rowToApprove, setRowToApprove] = useState(null);
 
-  // --- Fetch Data ---
+  const { user } = useAuthContext();
+
+  console.log(user);
+
   useEffect(() => {
     const fetchData = async () => {
-      const { data: leaves, error } = await supabase.from("leaves").select("*");
+      let query = supabase.from("leaves").select(`
+          *,
+          profiles:profile_id (
+            id,
+            first_name,
+            last_name,
+            email
+          ),
+          employees:profile_id (
+            role
+          )
+        `);
+
+      if (user?.role === "employee") {
+        query = query.eq("profile_id", user.id);
+      }
+
+      const { data: leaves, error } = await query;
+
       if (error) {
         console.error("Error fetching data:", error);
         return;
       }
+
       const processed = leaves.map((item) => ({
         ...item,
-        duration: getDuration(item.startDate, item.endDate),
+        name: item.profiles?.first_name || "Unknown",
+        role: item.employees?.role || "Employee",
+        duration: getDuration(item.to, item.from),
       }));
+
       setAllData(processed);
       setData(processed.slice(0, 10));
     };
     fetchData();
-  }, []);
+  }, [user]);
 
   // --- Handlers ---
   const handleSearch = (e) => {
@@ -244,7 +273,9 @@ const Leaves = () => {
 
       {/* Subheader */}
       <p className="text-gray-500 text-sm">Latest Leaves Request</p>
-      <p className="text-gray-400 text-xs">Keep Lorem IpsumLorem IpsumLorem Ipsum Lorem</p>
+      <p className="text-gray-400 text-xs">
+        Keep Lorem IpsumLorem IpsumLorem Ipsum Lorem
+      </p>
 
       {/* Search */}
       <div className="mt-4 flex justify-end">
@@ -266,7 +297,9 @@ const Leaves = () => {
           <table className="w-full text-sm text-left">
             <thead
               className={`sticky top-0 ${
-                selectAll ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
+                selectAll
+                  ? "bg-green-100 text-green-700"
+                  : "bg-gray-100 text-gray-600"
               } transition-colors`}
             >
               <tr>
@@ -284,26 +317,33 @@ const Leaves = () => {
                 <th className="px-4 py-3">End Date</th>
                 <th className="px-4 py-3">Duration</th>
                 <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 flex justify-between items-center">
-                  Actions
-                  {selectAll && (
-                    <button
-                      className="p-2 rounded-lg hover:bg-green-200 hover:text-green-800 transition-all"
-                      onClick={() => {
-                        setData((prev) => prev.filter((item) => !item.isChecked));
-                        setSelectAll(false);
-                      }}
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  )}
-                </th>
+                {user?.role === "admin" && (
+                  <th className="px-4 py-3 flex justify-between items-center">
+                    Actions
+                    {selectAll && (
+                      <button
+                        className="p-2 rounded-lg hover:bg-green-200 hover:text-green-800 transition-all"
+                        onClick={() => {
+                          setData((prev) =>
+                            prev.filter((item) => !item.isChecked)
+                          );
+                          setSelectAll(false);
+                        }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
               {data.length > 0 ? (
                 data.map((item) => (
-                  <tr key={item.id} className="border-t hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={item.id}
+                    className="border-t hover:bg-gray-50 transition-colors"
+                  >
                     <td className="px-4 py-3">
                       <input
                         type="checkbox"
@@ -319,32 +359,37 @@ const Leaves = () => {
                         <p className="text-xs text-gray-500">{item.role}</p>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-green-600">🌿 {item.leaveType}</td>
-                    <td className="px-4 py-3">{item.startDate}</td>
-                    <td className="px-4 py-3">{item.endDate}</td>
-                    <td className="px-4 py-3">{item.duration}</td>
+                    <td className="px-4 py-3 text-green-600">🌿 {item.type}</td>
+                    <td className="px-4 py-3">{item.from}</td>
+                    <td className="px-4 py-3">{item.to}</td>
+                    <td className="px-4 py-3">{item.duration} </td>
                     <td className={`px-4 py-3 ${getStatusColor(item.status)}`}>
                       {item.status}
                     </td>
-                    <td className="px-4 py-3 flex gap-2">
-                      <button
-                        className="p-2 bg-purple-100 rounded-lg hover:bg-purple-200 hover:text-purple-700 hover:shadow-lg transition-all"
-                        onClick={() => confirmApprove(item.id)}
-                      >
-                        <Check size={16} className="text-purple-600" />
-                      </button>
-                      <button
-                        className="p-2 bg-gray-100 rounded-lg hover:bg-purple-200 hover:text-purple-700 hover:shadow-lg transition-all"
-                        onClick={() => confirmReject(item.id)}
-                      >
-                        <X size={16} className="text-gray-600" />
-                      </button>
-                    </td>
+                    {user?.role === "admin" && (
+                      <td className="px-4 py-3 flex gap-2">
+                        <button
+                          className="p-2 bg-purple-100 rounded-lg hover:bg-purple-200 hover:text-purple-700 hover:shadow-lg transition-all"
+                          onClick={() => confirmApprove(item.id)}
+                        >
+                          <Check size={16} className="text-purple-600" />
+                        </button>
+                        <button
+                          className="p-2 bg-gray-100 rounded-lg hover:bg-purple-200 hover:text-purple-700 hover:shadow-lg transition-all"
+                          onClick={() => confirmReject(item.id)}
+                        >
+                          <X size={16} className="text-gray-600" />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} className="px-4 py-3 text-center text-gray-500">
+                  <td
+                    colSpan={8}
+                    className="px-4 py-3 text-center text-gray-500"
+                  >
                     No data available.
                   </td>
                 </tr>
@@ -392,7 +437,10 @@ const Leaves = () => {
           ← Previous
         </button>
         <div className="flex gap-2">
-          {Array.from({ length: Math.ceil(allData.length / 10) }, (_, i) => i + 1).map((page) => (
+          {Array.from(
+            { length: Math.ceil(allData.length / 10) },
+            (_, i) => i + 1
+          ).map((page) => (
             <button
               key={page}
               className={`px-3 py-1 rounded-lg ${
