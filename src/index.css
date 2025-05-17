@@ -82,3 +82,20 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+@keyframes bounce-short {
+  0%   { transform: translateX(-50%) scaleX(0.7);}
+  50%  { transform: translateX(-50%) scaleX(1.15);}
+  100% { transform: translateX(-50%) scaleX(1);}
+}
+.animate-bounce-short {
+  animation: bounce-short 0.5s cubic-bezier(.68,-0.55,.27,1.55);
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.18; }
+  50% { opacity: 0.28; }
+}
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}

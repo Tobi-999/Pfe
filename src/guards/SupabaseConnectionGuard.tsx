@@ -22,27 +22,25 @@ const rolePages = {
     "/jobs",
     "/leaves",
     "/recordings",
-    "registrations",
+    "/registrations",
     "/vue-more",
+    "/employee",
+    "/portfolio",
+    "/settings",
+
   ],
   employee: {
     verified: [
       "/users",
       "/leaves",
-      "/recordings",
       "jobs",
-      "/vue-more",
-      "/home",
       "/CreateEmployee",
+      "/settings",
     ],
     unverified: [
       "/jobs",
-      "/leaves",
-      "/recordings",
-      "/jobs",
-      "/vue-more",
-      "/home",
-      "/CreateEmployee",
+      "/settings",
+      
     ],
   },
 };

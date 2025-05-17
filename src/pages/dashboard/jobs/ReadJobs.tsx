@@ -171,7 +171,7 @@ function ReadJobs() {
             className={`px-4 py-2 font-medium rounded-lg transition-all duration-300 ${
               activeSection === "members"
                 ? "bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white shadow-md"
-                : "bg-purple-100 text-purple-700 hover:bg-gradient-to-r hover:from-purple-400 hover:to-fuchsia-400 hover:text-white hover:shadow"
+              : "bg-purple-100 text-purple-700 hover:bg-gradient-to-r hover:from-purple-400 hover:to-fuchsia-400 hover:text-white hover:shadow"
             }`}
             onClick={() => setActiveSection("members")}
           >
@@ -193,17 +193,51 @@ function ReadJobs() {
       {activeSection === "about" && (
         <div>
           {/* Job Overview Section */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-2 text-gray-900">
-              Job overview
-            </h2>
-            <p className="text-gray-500 mb-4">{job.description}</p>
-            <div className="bg-purple-50 p-4 rounded-lg">
-              <p className="text-gray-700">{job?.department}xx xx</p>
-              <p className="text-gray-700 mt-2">
-                Created: {new Date(job.created_at).toLocaleDateString()}
-              </p>
+          <div className="mb-16">
+            <div className="relative bg-gradient-to-br from-purple-100 via-white to-fuchsia-100 p-10 rounded-[2.5rem] shadow-2xl border border-purple-100 flex flex-col sm:flex-row items-center gap-10 overflow-hidden">
+              {/* Decorative blurred gradients */}
+              <div className="absolute -top-16 -left-16 w-56 h-56 bg-purple-300 opacity-20 rounded-full blur-3xl pointer-events-none animate-pulse-slow" />
+              <div className="absolute -bottom-16 -right-16 w-56 h-56 bg-fuchsia-300 opacity-20 rounded-full blur-3xl pointer-events-none animate-pulse-slow" />
+              <div className="absolute top-1/2 left-1/2 w-1/2 h-1/2 bg-gradient-to-br from-purple-200 via-fuchsia-100 to-white opacity-10 rounded-full blur-2xl pointer-events-none -translate-x-1/2 -translate-y-1/2" />
+              
+             
+              {/* Job info */}
+              <div className="flex-1">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3 justify-center">
+                  <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-200 to-fuchsia-100 text-purple-700 font-semibold text-base shadow-lg border border-purple-100">
+                    <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M12 6v6l4 2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    Created: <span className="font-medium">{new Date(job.created_at).toLocaleDateString()}</span>
+                  </span>
+                  <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-fuchsia-100 to-purple-100 text-fuchsia-700 font-semibold text-base shadow-lg border border-fuchsia-100">
+                    <svg className="w-5 h-5 text-fuchsia-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path d="M3 7v4a1 1 0 001 1h3v6a1 1 0 001 1h4a1 1 0 001-1v-6h3a1 1 0 001-1V7" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    Department: <span className="font-medium capitalize">{job?.department}</span>
+                  </span>
+                  <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-100 to-fuchsia-50 text-purple-700 font-semibold text-base shadow-lg border border-purple-50">
+                    <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M16 3.13a4 4 0 010 7.75M8 3.13a4 4 0 000 7.75" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    {job.number_of_seats} seats available
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 mt-3">
+                 
+                </div>
+              </div>
             </div>
+            {/* More space and a divider for separation */}
+            <div className="h-20" />
+            <div className="flex items-center gap-5 mb-8">
+              <span className="inline-block w-2 h-12 bg-gradient-to-b from-purple-400 to-fuchsia-400 rounded-full shadow-lg animate-pulse" />
+              <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight drop-shadow-2xl font-display">Job Overview</h2>
+            </div>
+            <p className="text-gray-800 text-xl leading-relaxed bg-white/90 rounded-3xl p-8 shadow-2xl border border-purple-50 font-sans">
+              {job.description}
+            </p>
           </div>
         </div>
       )}

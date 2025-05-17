@@ -1,13 +1,16 @@
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+import { useNavigate } from "react-router-dom";
+import { message } from "antd";
+import { FrownOutlined } from "@ant-design/icons";
 import { supabase } from "../../../supabase/SupaBase";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
 import AuthBanner from "../../../assets/authimg.png";
 import "./index.css";
-import { message } from "antd"; // Import Ant Design's message component
-import { SmileOutlined, FrownOutlined } from "@ant-design/icons"; // Import icons
+import { toast } from "sonner";
 
+
+// Validation schema
 const schema = yup.object({
   email: yup.string().email("Invalid email").required("Email is required"),
   password: yup.string().required("Password is required"),
@@ -23,6 +26,7 @@ export default function Login() {
     resolver: yupResolver(schema),
   });
 
+  // Handle form submission
   const onSubmit = async (data: any) => {
     const { email, password } = data;
     const { error } = await supabase.auth.signInWithPassword({
@@ -31,37 +35,32 @@ export default function Login() {
     });
 
     if (error) {
-      console.error("Error signing in:", error.message);
+      // Show error message (keep Ant Design for error)
       message.open({
         type: "error",
         content: "Login failed: " + error.message,
         icon: <FrownOutlined style={{ color: "red" }} />,
-        duration: 3, // Display for 3 seconds
+        duration: 2,
       });
     } else {
-      console.log("Login successful!");
-      message.open({
-        type: "success",
-        content: "Login successful!",
-        icon: <SmileOutlined style={{ color: "green" }} />,
-        duration: 3, // Display for 3 seconds
-      });
-      message.open({
-        type: "info",
-        content: "✨ Welcome back! ✨",
-        icon: <SmileOutlined style={{ color: "blue" }} />,
-        duration: 3, // Display for 3 seconds
+      // Show cool toast with Sonner for success
+      toast.success("Login successful! ✨ Welcome back!", {
+        duration: 3000,
       });
       localStorage.setItem("userEmail", email);
+      // Optionally, navigate after a short delay
+      // setTimeout(() => navigate("/"), 1000);
     }
   };
 
   return (
     <div className="flex flex-1 items-center justify-center w-screen min-h-screen">
+      {/* Left: Login Form */}
       <div className="flex flex-1 flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
         <div className="w-full max-w-md">
           <h1 className="text-3xl font-bold text-center mb-6">Log in</h1>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Email Field */}
             <div>
               <label className="block text-sm font-medium mb-1">Email*</label>
               <input
@@ -75,6 +74,7 @@ export default function Login() {
                 </p>
               )}
             </div>
+            {/* Password Field */}
             <div>
               <label className="block text-sm font-medium mb-1">
                 Password*
@@ -91,6 +91,7 @@ export default function Login() {
                 </p>
               )}
             </div>
+            {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
               <label className="flex items-center">
                 <input type="checkbox" className="mr-2" />
@@ -103,6 +104,7 @@ export default function Login() {
                 Forgot password?
               </a>
             </div>
+            {/* Submit Button */}
             <button
               type="submit"
               className="w-full bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600"
@@ -110,6 +112,7 @@ export default function Login() {
               Sign in
             </button>
           </form>
+          {/* Google Sign In */}
           <div className="mt-6 text-center">
             <button className="flex items-center justify-center w-full bg-white border border-gray-300 p-2 rounded-lg hover:bg-gray-50">
               <img
@@ -120,6 +123,7 @@ export default function Login() {
               Sign in with Google
             </button>
           </div>
+          {/* Sign Up Link */}
           <p className="mt-6 text-center text-sm text-gray-600">
             Don’t have an account?{" "}
             <a href="/signup" className="text-blue-500 hover:underline">
@@ -128,6 +132,7 @@ export default function Login() {
           </p>
         </div>
       </div>
+      {/* Right: Banner */}
       <div className="flex-1 relative min-h-screen">
         <img
           src={AuthBanner}

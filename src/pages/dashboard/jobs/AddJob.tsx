@@ -12,7 +12,7 @@ const schema = yup.object().shape({
   jobName: yup.string().required("Job name is required"),
   description: yup
     .string()
-    .max(275, "Description must be at most 275 characters")
+    .max((500), "Description must be at most 500 characters")
     .required("Description is required"),
   openSeats: yup
     .number()

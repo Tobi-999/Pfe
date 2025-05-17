@@ -22,3 +22,4 @@ admin :
 calculate registeration get lel count of profiles not approved (pending)
 calculate leaves get lel count of leaves not approved (pending)
 calculate employees (profiles verified)
+ 

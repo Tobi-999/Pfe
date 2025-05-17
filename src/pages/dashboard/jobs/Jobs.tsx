@@ -13,7 +13,7 @@ interface Job {
   picture: string | null;
   created_at: string;
   status: "Open" | "Closed";
-  category: "it" | "business" | "design";
+  category: "It" | "Business" | "Design";
 }
 
 // Constants
@@ -48,7 +48,26 @@ function JobCard({
 
   return (
     <div
-      className="max-w-sm bg-white rounded-lg p-4 border border-gray-200 shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 hover:-translate-y-2 hover:shadow-[0_10px_32px_0_rgba(124,58,237,0.18)] relative"
+      className="max-w-sm bg-white rounded-lg p-4 border border-gray-200 shadow-lg transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:shadow-[0_10px_40px_0_rgba(124,58,237,0.25)] hover:border-purple-400 hover:bg-purple-50 relative"
+      style={{
+        perspective: "800px",
+        boxShadow:
+          "0 8px 24px 0 rgba(124,58,237,0.15), 0 1.5px 6px 0 rgba(0,0,0,0.07)",
+        willChange: "transform",
+        transition:
+          "transform 0.5s cubic-bezier(0.22,1,0.36,1), box-shadow 0.5s cubic-bezier(0.22,1,0.36,1), background 0.5s cubic-bezier(0.22,1,0.36,1), border 0.5s cubic-bezier(0.22,1,0.36,1)",
+      }}
+      onMouseMove={e => {
+        const card = e.currentTarget;
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        card.style.transform = `rotateY(${x / 18}deg) rotateX(${-y / 18}deg) scale(1.04)`;
+      }}
+      onMouseLeave={e => {
+        const card = e.currentTarget;
+        card.style.transform = "";
+      }}
     >
       <div className="flex justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -78,7 +97,11 @@ function JobCard({
           />
         </div>
       </div>
-      <p className="text-sm text-gray-600 mt-2">{job.description}</p>
+      <p className="text-sm text-gray-600 mt-2">
+        {job.description.length > 70
+          ? job.description.slice(0, 70) + "..."
+          : job.description}
+      </p>
       <p className="text-sm text-gray-600 mt-2">
         <span className="font-medium text-gray-800">Seats:</span>{" "}
         {job.number_of_seats}
@@ -109,9 +132,17 @@ export default function JobListing() {
   const [selectedCategory, setSelectedCategory] = useState("View all");
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fade, setFade] = useState(true);
 
   useEffect(() => {
-    fetchJobs();
+    setFade(false); // Start fade out
+    const timeout = setTimeout(() => {
+      fetchJobs();
+      setFade(true); // Fade in after jobs are fetched
+    }, 200); // Duration of fade out
+
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line
   }, [selectedCategory]);
 
   const fetchJobs = async () => {
@@ -170,7 +201,7 @@ export default function JobListing() {
           <h1 className="text-2xl sm:text-3xl font-bold">Jobs</h1>
           <Button
             type="primary"
-            className="bg-purple-600 hover:bg-purple-700 border-purple-600 text-lg sm:text-xl px-4 sm:px-6 py-3 sm:py-5 rounded-lg"
+            className="bg-gradient-to-r from-purple-500 to-pink-500 border-0 text-white text-lg sm:text-xl px-4 sm:px-6 py-3 sm:py-5 rounded-lg shadow-lg transition-all duration-200 hover:from-pink-500 hover:to-purple-500 hover:scale-105 hover:shadow-2xl focus:outline-none"
             onClick={() => navigate("create")}
           >
             + Add Job
@@ -178,24 +209,52 @@ export default function JobListing() {
         </div>
 
         {/* Categories */}
-        <div className="flex flex-wrap gap-2 sm:gap-4 mb-6 border-b pb-2">
+        <div className="flex flex-wrap gap-2 sm:gap-4 mb-6 border-b pb-2 relative z-10">
           {categories.map((category, i) => (
             <span
               key={i}
               onClick={() => handleCategoryClick(category)}
-              className={`cursor-pointer ${
-                selectedCategory === category
-                  ? "text-purple-600 border-b-2 border-purple-600 pb-1"
-                  : "text-gray-500 hover:text-purple-600"
-              }`}
+              className={`relative px-4 py-1 mx-1 my-1 cursor-pointer rounded-lg transition-all duration-300
+                backdrop-blur-md bg-white/40 shadow-md
+                ${selectedCategory === category
+                  ? "text-purple-800 font-bold scale-110 shadow-lg ring-2 ring-purple-300"
+                  : "text-gray-500 hover:text-purple-600 hover:scale-105"}
+              `}
+              style={{
+                display: "inline-block",
+                boxShadow:
+                  selectedCategory === category
+                    ? "0 4px 24px 0 rgba(168,85,247,0.15)"
+                    : "0 1.5px 6px 0 rgba(0,0,0,0.07)",
+                transition: "all 0.3s cubic-bezier(.68,-0.55,.27,1.55)",
+              }}
             >
               {category}
+              <span
+                className={`absolute left-1/2 -bottom-1 w-4/5 h-1 rounded-full transition-all duration-500
+                  ${selectedCategory === category
+                    ? "bg-gradient-to-r from-purple-500 to-pink-500 scale-x-100 animate-bounce-short"
+                    : "bg-transparent scale-x-0"}
+                `}
+                style={{
+                  transform:
+                    selectedCategory === category
+                      ? "translateX(-50%) scaleX(1)"
+                      : "translateX(-50%) scaleX(0)",
+                  transformOrigin: "center",
+                  transitionProperty: "background, transform",
+                }}
+              />
             </span>
           ))}
         </div>
 
         {/* Job Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 flex-grow w-full">
+        <div
+          className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 flex-grow w-full transition-opacity duration-300 ${
+            fade ? "opacity-100" : "opacity-0"
+          }`}
+        >
           {loading ? (
             <div className="col-span-full h-[calc(100vh-200px)] w-full flex items-center justify-center text-gray-400">
               Loading jobs...
