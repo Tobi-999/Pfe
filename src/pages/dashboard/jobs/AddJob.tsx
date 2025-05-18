@@ -5,8 +5,8 @@ import { UploadCloud, DownloadCloud, Search } from "lucide-react";
 import { supabase } from "../../../supabase/SupaBase";
 import { message } from "antd";
 import { toast } from "sonner";
-
-
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 
 const schema = yup.object().shape({
   jobName: yup.string().required("Job name is required"),
@@ -40,12 +40,17 @@ const schema = yup.object().shape({
 });
 
 export default function CreateJobForm() {
+  const { id } = useParams<{ id?: string }>();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
   const {
     register,
     handleSubmit,
     watch,
     setValue,
     formState: { errors },
+    reset,
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
@@ -60,10 +65,38 @@ export default function CreateJobForm() {
   });
 
   const previewUrl = watch("previewUrl");
+
+  // Fetch job data if editing
+  useEffect(() => {
+    const fetchJob = async () => {
+      if (!id) return;
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("jobs")
+        .select("*")
+        .eq("id", id)
+        .single();
+      setLoading(false);
+      if (error || !data) {
+        message.error("Failed to fetch job data");
+        return;
+      }
+      setValue("jobName", data.title || "");
+      setValue("description", data.description || "");
+      setValue("openSeats", data.number_of_seats || 1);
+      setValue("department", data.department || "");
+      setValue("ends_at", data.ends_at ? data.ends_at.slice(0, 10) : "");
+      setValue("avatar", null);
+      setValue("previewUrl", data.picture || null);
+    };
+    fetchJob();
+    // eslint-disable-next-line
+  }, [id, setValue]);
+
   const onSubmit = async (data: any) => {
     try {
-      // Upload image to storage bucket if provided
-      let imageUrl = null;
+      setLoading(true);
+      let imageUrl = data.previewUrl || null;
       if (data.avatar?.[0]) {
         const file = data.avatar[0];
         const fileExt = file.name.split(".").pop();
@@ -77,34 +110,48 @@ export default function CreateJobForm() {
         imageUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/job-images/${fileName}`;
       }
 
-      // Insert job data into jobs table
-      const { error: jobError } = await supabase.from("jobs").insert([
-        {
-          title: data.jobName,
-          description: data.description,
-          number_of_seats: data.openSeats,
-          picture: imageUrl,
-          created_at: new Date(),
-          department: data.department,
-          ends_at: data.ends_at,
-        },
-      ]);
+      if (id) {
+        // Update existing job
+        const { error: updateError } = await supabase
+          .from("jobs")
+          .update({
+            title: data.jobName,
+            description: data.description,
+            number_of_seats: data.openSeats,
+            picture: imageUrl,
+            department: data.department,
+            ends_at: data.ends_at,
+          })
+          .eq("id", id);
 
-      if (jobError) throw jobError;
+        if (updateError) throw updateError;
+        toast.success("✅ Job updated successfully!");
+      } else {
+        // Insert new job
+        const { error: jobError } = await supabase.from("jobs").insert([
+          {
+            title: data.jobName,
+            description: data.description,
+            number_of_seats: data.openSeats,
+            picture: imageUrl,
+            created_at: new Date(),
+            department: data.department,
+            ends_at: data.ends_at,
+          },
+        ]);
+        if (jobError) throw jobError;
+        toast.success("✅ Job created successfully!");
+      }
 
-      toast.success("✅ Job created successfully!");
-
-      // Reset form after successful submission
-      setValue("jobName", "");
-      setValue("description", "");
-      setValue("openSeats", 1);
-      setValue("avatar", undefined);
-      setValue("previewUrl", undefined);
-      setValue("department", "");
-      setValue("ends_at", "");
+      if (!id) {
+        reset();
+      }
+      setLoading(false);
+      navigate("/jobs");
     } catch (error) {
-      console.error("Error creating job:", error);
-      message.error("Failed to create job");
+      setLoading(false);
+      console.error("Error creating/updating job:", error);
+      message.error("Failed to save job");
     }
   };
 
@@ -112,7 +159,9 @@ export default function CreateJobForm() {
     <div className="min-h-screen bg-white p-6 mx-auto max-w-full w-full relative">
       {/* Header with Export Button */}
       <div className="flex justify-between items-center mb-8 relative">
-        <h1 className="text-3xl font-bold text-gray-900">Create</h1>
+        <h1 className="text-3xl font-bold text-gray-900">
+          {id ? "Edit" : "Create"}
+        </h1>
         <div className="absolute right-0 mr-6 flex items-center gap-4">
           <Search className="w-5 h-5 text-gray-500 cursor-pointer hover:text-gray-700" />
           <button className="flex items-center gap-2 text-sm px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100">
@@ -291,7 +340,7 @@ export default function CreateJobForm() {
           <div className="flex justify-end gap-3 pt-8">
             <button
               type="button"
-              onClick={() => console.log("Cancel clicked")}
+              onClick={() => navigate(-1)}
               className="px-6 py-2 text-sm text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 rounded-md"
             >
               Cancel
@@ -299,8 +348,9 @@ export default function CreateJobForm() {
             <button
               type="submit"
               className="px-6 py-2 text-sm text-white bg-purple-600 hover:bg-purple-700 rounded-md"
+              disabled={loading}
             >
-              Save
+              {loading ? "Saving..." : "Save"}
             </button>
           </div>
         </form>

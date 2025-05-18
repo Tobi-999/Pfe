@@ -24,12 +24,14 @@ function JobCard({
   job,
   onDelete,
   onShare,
+  role,
 }: {
   job: Job;
   onDelete: (jobId: number) => void;
   onShare: (jobTitle: string) => void;
+  role: string | null;
 }) {
-  const navigate = useNavigate(); // Add this line
+  const navigate = useNavigate();
 
   const endsAt = new Date(job?.ends_at);
   const now = new Date();
@@ -87,14 +89,18 @@ function JobCard({
             className="w-5 h-5 text-purple-500 cursor-pointer"
             onClick={() => onShare(job.title)}
           />
-          <Pencil
-            className="w-5 h-5 text-purple-500 cursor-pointer"
-            onClick={() => navigate(`//${job.id}`)}
-          />
-          <Trash2
-            className="w-5 h-5 text-purple-500 cursor-pointer"
-            onClick={() => onDelete(job.id)}
-          />
+          {role !== "employee" && (
+            <>
+              <Pencil
+                className="w-5 h-5 text-purple-500 cursor-pointer"
+                onClick={() => navigate("/jobs/create")}
+              />
+              <Trash2
+                className="w-5 h-5 text-purple-500 cursor-pointer"
+                onClick={() => onDelete(job.id)}
+              />
+            </>
+          )}
         </div>
       </div>
       <p className="text-sm text-gray-600 mt-2">
@@ -133,14 +139,31 @@ export default function JobListing() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [fade, setFade] = useState(true);
+  const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
-    setFade(false); // Start fade out
+    // Fetch user role from profiles
+    const fetchRole = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+      if (!error && data) {
+        setRole(data.role);
+      }
+    };
+    fetchRole();
+  }, []);
+
+  useEffect(() => {
+    setFade(false);
     const timeout = setTimeout(() => {
       fetchJobs();
-      setFade(true); // Fade in after jobs are fetched
-    }, 200); // Duration of fade out
-
+      setFade(true);
+    }, 200);
     return () => clearTimeout(timeout);
     // eslint-disable-next-line
   }, [selectedCategory]);
@@ -199,13 +222,15 @@ export default function JobListing() {
         {/* Header */}
         <div className="flex flex-wrap justify-between items-center mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold">Jobs</h1>
-          <Button
-            type="primary"
-            className="bg-gradient-to-r from-purple-500 to-pink-500 border-0 text-white text-lg sm:text-xl px-4 sm:px-6 py-3 sm:py-5 rounded-lg shadow-lg transition-all duration-200 hover:from-pink-500 hover:to-purple-500 hover:scale-105 hover:shadow-2xl focus:outline-none"
-            onClick={() => navigate("create")}
-          >
-            + Add Job
-          </Button>
+          {role !== "employee" && (
+            <Button
+              type="primary"
+              className="bg-gradient-to-r from-purple-500 to-pink-500 border-0 text-white text-lg sm:text-xl px-4 sm:px-6 py-3 sm:py-5 rounded-lg shadow-lg transition-all duration-200 hover:from-pink-500 hover:to-purple-500 hover:scale-105 hover:shadow-2xl focus:outline-none"
+              onClick={() => navigate("create")}
+            >
+              + Add Job
+            </Button>
+          )}
         </div>
 
         {/* Categories */}
@@ -266,6 +291,7 @@ export default function JobListing() {
                 job={job}
                 onDelete={handleDeleteJob}
                 onShare={handleShareJob}
+                role={role}
               />
             ))
           ) : (
