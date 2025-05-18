@@ -195,7 +195,7 @@ const Home = () => {
     );
   };
 
-  const handleViewMore = (key) => navigate(`/vue-more/${key}`);
+  const handleViewMore = (key) => navigate("/vue-more/:id");
 
   const exportToExcel = () => {
     const headers = [
@@ -328,14 +328,7 @@ const Home = () => {
               } text-gray-600`}
             >
               <tr>
-                <th className="px-4 py-3">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4"
-                    checked={selectAll}
-                    onChange={(e) => toggleSelectAll(e.target.checked)}
-                  />
-                </th>
+                {/* Removed checkbox column */}
                 <th className="px-4 py-3">Name</th>
                 <th className="px-4 py-3">Email address</th>
                 <th className="px-4 py-3">Phone Number</th>
@@ -358,7 +351,7 @@ const Home = () => {
               {loading ? (
                 <tr>
                   <td
-                    colSpan="7"
+                    colSpan="6"
                     className="px-4 py-3 text-center text-gray-500"
                   >
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
@@ -367,14 +360,8 @@ const Home = () => {
               ) : profiles.length > 0 ? (
                 profiles.map((profile) => (
                   <tr key={profile.id} className="border-t hover:bg-gray-50">
-                    <td className="px-4 py-3">
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4"
-                        checked={profile.isChecked || false}
-                        onChange={() => toggleCheckbox(profile.id)}
-                      />
-                    </td>
+                    {/* Removed checkbox cell */
+                    }
                     <td className="px-4 py-3">
                       {profile.first_name || "-----"}
                     </td>
@@ -420,7 +407,7 @@ const Home = () => {
               ) : (
                 <tr>
                   <td
-                    colSpan="7"
+                    colSpan="6"
                     className="px-4 py-3 text-center text-gray-500"
                   >
                     No data available.

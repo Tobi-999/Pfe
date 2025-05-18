@@ -141,35 +141,7 @@ function Settings() {
           </div>
         </div>
         <hr className="border-gray-300 " />
-        <div className="w-full flex justify-between items-start">
-          <div>
-            <p className="text-lg font-medium mb-1">Branding</p>
-            <p className="text-gray-500 text-sm">Add your logo to reports and emails.</p>
-            <p className="text-purple-600 text-sm cursor-pointer">View examples</p>
-          </div>
-          <div className="flex flex-col gap-4 mr-[36rem]">
-            <label className="flex flex-col items-start gap-1">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  className="appearance-none h-5 w-5 border-2 border-purple-600 rounded-md checked:bg-purple-500 checked:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
-                />
-                <span className="text-gray-500 text-sm font-bold">Reports</span>
-              </div>
-              <span className="text-gray-400 text-xs ml-6">Include my logo in summary reports.</span>
-            </label>
-            <label className="flex flex-col items-start gap-1">
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  className="appearance-none h-5 w-5 border-2 border-purple-600 rounded-md checked:bg-purple-500 checked:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-300"
-                />
-                <span className="text-gray-500 text-sm font-bold">Emails</span>
-              </div>
-              <span className="text-gray-400 text-xs ml-6">Include my logo in customer emails.</span>
-            </label>
-          </div>
-        </div>
+     
         <hr className="border-gray-300 " />
         <div className="w-3/4 p-6 rounded-lg shadow-sm">
           <p className="text-lg font-medium mb-4">Social profiles</p>

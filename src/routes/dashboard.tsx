@@ -71,7 +71,7 @@ const routes = [
   {
     exact: true,
     path: "/vue-more/:id",
-    component: lazy(() => import("../VueMore")),
+    component: lazy(() => import("../pages/Dashboard/registrations/VueMore")),
     layout: lazy(() => import("../layout/Dashboard")),
     guard: lazy(() => import("../guards/SupabaseConnectionGuard")),
   },

@@ -1,36 +1,54 @@
-import React, { useState } from "react";
-import { Search, CloudDownload, Check, X, Trash2 } from "lucide-react"; // Import Trash2 icon
-import * as XLSX from "xlsx"; // Import xlsx library
+import React, { useState, useEffect } from "react";
+import { Search, CloudDownload } from "lucide-react";
+import * as XLSX from "xlsx";
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = 'https://jgqhkvlhqsxobscfsfkv.supabase.co';
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpncWhrdmxocXN4b2JzY2ZzZmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyOTA1NjQsImV4cCI6MjA1Nzg2NjU2NH0.TX0xSmGL5tArOgwLq24UlBQit3AYNMxyCGb8B7AvRmw";
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const Home = () => {
-  const allData = Array.from({ length: 100 }, (_, index) => ({
-    key: index + 1,
-    name: `User ${index + 1}`,
-    role: "Product Designer",
-    email: "Farouk@gmail.com",
-    phoneNumber: `+123456789${index}`, 
-    submissionDate: `02/23/2025 ${String(index % 24).padStart(2, "0")}:${String(index % 60).padStart(2, "0")}`, // Include time in submission date
-    duration: "4 days",
-    status: index % 2 === 0 ? "Pending" : "Approved",
-  }));
-
-  const [data, setData] = useState(allData.slice(0, 10));
+  const [allData, setAllData] = useState<any[]>([]);
+  const [data, setData] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectAll, setSelectAll] = useState(false);
-  const [showSearchButtons, setShowSearchButtons] = useState(false); // State for toggling buttons
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedRow, setSelectedRow] = useState(null);
-  const [showStatusModal, setShowStatusModal] = useState(false);
-  const [selectedRowForStatus, setSelectedRowForStatus] = useState(null);
-  const [showApproveDialog, setShowApproveDialog] = useState(false); // Tracks approve dialog visibility
-  const [rowToApprove, setRowToApprove] = useState(null); // Tracks the row to approve
+
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      const { data: profiles, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("role", "employee")
+        .eq("verified", "approved");
+      if (!error && profiles) {
+        const mapped = profiles.map((item, idx) => ({
+          key: item.id || idx + 1,
+          name: item.first_name || item.name || item.full_name || "",
+          role: item.role || "Product Designer",
+          email: item.email || "",
+          phoneNumber: item.phone || "",
+          submissionDate: item.created_at
+            ? new Date(item.created_at).toLocaleString()
+            : "",
+          duration: item.duration || "",
+          status: item.verified || "",
+          hiring_date: item.hiring_date || "",
+          department: item.department || "",
+          rate_par_month: item.rate_per_month || "",
+        }));
+        setAllData(mapped);
+        setData(mapped.slice(0, 10));
+      }
+    };
+    fetchProfiles();
+  }, []);
 
   const handleSearch = (e) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
     const filteredData = allData.filter((item) =>
-      item.name.toLowerCase().includes(value)
+      item.name?.toLowerCase().includes(value)
     );
     setData(filteredData.slice(0, 10));
     setCurrentPage(1);
@@ -39,7 +57,7 @@ const Home = () => {
   const handlePageChange = (page) => {
     const startIndex = (page - 1) * 10;
     const filteredData = allData.filter((item) =>
-      item.name.toLowerCase().includes(searchTerm)
+      item.name?.toLowerCase().includes(searchTerm)
     );
     setData(filteredData.slice(startIndex, startIndex + 10));
     setCurrentPage(page);
@@ -60,156 +78,86 @@ const Home = () => {
     setData(allData.slice((currentPage - 1) * 10, currentPage * 10));
   };
 
-  const deleteRow = (key) => {
-    setData((prevData) => prevData.filter((item) => item.key !== key));
-  };
-
-  const toggleSearchButtons = () => {
-    setShowSearchButtons((prev) => !prev);
-  };
-
-  const openDeleteModal = (key) => {
-    setSelectedRow(key);
-    setShowDeleteModal(true);
-  };
-
-  const confirmDelete = () => {
-    setData((prevData) => prevData.filter((item) => item.key !== selectedRow));
-    setShowDeleteModal(false);
-    setSelectedRow(null);
-  };
-
-  const closeDeleteModal = () => {
-    setShowDeleteModal(false);
-    setSelectedRow(null);
-  };
-
-  const openStatusModal = (key) => {
-    setSelectedRowForStatus(key);
-    setShowStatusModal(true);
-  };
-
-  const closeStatusModal = () => {
-    setShowStatusModal(false);
-    setSelectedRowForStatus(null);
-  };
-
-  const updateStatus = (status) => {
-    setData((prevData) =>
-      prevData.map((item) =>
-        item.key === selectedRowForStatus ? { ...item, status } : item
-      )
-    );
-    closeStatusModal();
-  };
-
-  const confirmApprove = (key) => {
-    setRowToApprove(key);
-    setShowApproveDialog(true);
-  };
-
-  const handleApprove = () => {
-    setData((prevData) =>
-      prevData.map((item) =>
-        item.key === rowToApprove ? { ...item, status: "Approved" } : item
-      )
-    );
-    setShowApproveDialog(false);
-    setRowToApprove(null);
-  };
-
-  const cancelApprove = () => {
-    setShowApproveDialog(false);
-    setRowToApprove(null);
-  };
-
   const exportToExcel = () => {
     const worksheetData = [
-      ["Name", "Email", "Phone Number", "Submission Date", "Status"], // Table headers
+      [
+        "Name",
+        "Email",
+        "Phone Number",
+        "Submission Date",
+        "Hiring Date",
+        "Department",
+        "Rate/Month",
+        "Status"
+      ],
       ...allData.map((item) => [
         item.name,
         item.email,
         item.phoneNumber,
         item.submissionDate,
+        item.hiring_date,
+        item.department,
+        item.rate_par_month  ,
         item.status,
       ]),
     ];
-  
     const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Employee Data");
-  
     XLSX.writeFile(workbook, "EmployeeTable.xlsx");
   };
 
   return (
-    <div className="absolute inset-0 ml-64 p-6 bg-white rounded-lg shadow-md">
+    <div className="absolute inset-0 ml-64 p-6 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg shadow-2xl">
       <header className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-semibold">Home</h1>
+        <h1 className="text-2xl font-bold text-purple-700 drop-shadow">Home</h1>
         <div className="flex items-center gap-4">
           <button
-            className="flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-lg text-gray-700 hover:bg-purple-200 hover:text-purple-700 hover:shadow-lg transition-all"
-            onClick={exportToExcel} // Attach export function
+            className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-500 px-5 py-2 rounded-xl text-white font-semibold shadow-lg hover:scale-105 hover:from-purple-600 hover:to-indigo-600 transition-all duration-200"
+            onClick={exportToExcel}
           >
-            <CloudDownload size={16} /> Export
+            <CloudDownload size={18} /> Export
           </button>
         </div>
       </header>
-
 
       <div className="mt-4 flex justify-between items-center">
         <div>
           <h3 className="text-lg font-semibold text-gray-800">Latest Registrations</h3>
           <p className="text-gray-400 text-xs">Keep Lorem IpsumLorem IpsumLorem Ipsum Lorem</p>
         </div>
-        <div className="relative">
+        <div className="relative w-96">
           <input
             type="text"
-            placeholder="Search"
-            className="border rounded-lg py-2 pl-8 pr-4 text-sm w-96 focus:ring-0 focus:outline-none hover:border-purple-400 hover:shadow-md transition-all"
+            placeholder="Search employees..."
+            className="border-2 border-purple-200 rounded-xl py-2 pl-12 pr-4 text-base w-full bg-white shadow focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all duration-200 hover:border-purple-400 hover:shadow-lg"
             value={searchTerm}
             onChange={handleSearch}
           />
-          <Search className="absolute left-2 top-2.5 text-gray-400" size={16} />
+          <span className="absolute left-4 top-2.5 text-purple-400">
+            <Search size={20} />
+          </span>
         </div>
       </div>
 
-      <div className="mt-4 border rounded-lg overflow-hidden">
+      <div className="mt-6 border-none rounded-2xl overflow-hidden shadow-2xl bg-white">
         <div className="overflow-y-auto max-h-[550px]">
-          <table className="w-full text-sm text-left">
+          <table className="w-full text-sm text-left rounded-2xl overflow-hidden">
             <thead
               className={`sticky top-0 ${
-                selectAll ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
-              } transition-colors`}
+                selectAll ? "bg-green-100 text-green-700" : "bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700"
+              } shadow-md`}
             >
               <tr>
-                <th className="px-4 py-3">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4"
-                    checked={selectAll}
-                    onChange={(e) => toggleSelectAll(e.target.checked)}
-                  />
-                </th>
+                {/* Removed checkbox column */}
                 <th className="px-4 py-3">Name</th>
                 <th className="px-4 py-3">Email address</th>
                 <th className="px-4 py-3">Phone Number</th>
                 <th className="px-4 py-3">Submission Date</th>
+                <th className="px-4 py-3">Hiring Date</th>
+                <th className="px-4 py-3">Department</th>
+                <th className="px-4 py-3">Rate/Month</th>
                 <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 flex justify-between items-center">
-                  Actions
-                  {selectAll && (
-                    <button
-                      className="p-2 rounded-lg hover:bg-green-200 hover:text-green-800 transition-all"
-                      onClick={() => {
-                        setData((prevData) => prevData.filter((item) => !item.isChecked));
-                        setSelectAll(false);
-                      }}
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  )}
-                </th>
               </tr>
             </thead>
             <tbody>
@@ -217,60 +165,88 @@ const Home = () => {
                 data.map((item) => (
                   <tr
                     key={item.key}
-                    className={`border-t hover:bg-gray-50 transition-colors ${
+                    className={`group border-t ${
                       searchTerm && item.name.toLowerCase().includes(searchTerm)
-                        ? "bg-[#F4EBFF]"
+                        ? "bg-purple-100"
                         : ""
-                    }`}
+                    } hover:bg-gradient-to-r hover:from-purple-100 hover:to-blue-100 hover:shadow-xl hover:scale-[1.01]`}
+                    style={{
+                      cursor: "pointer",
+                      transition:
+                        "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1), transform 0.3s cubic-bezier(0.4,0,0.2,1)"
+                    }}
                   >
-                    <td className="px-4 py-3">
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4"
-                        checked={item.isChecked || false}
-                        onChange={() => toggleCheckbox(item.key)}
-                      />
-                    </td>
-                    <td className="px-4 py-3 flex items-center gap-2">
-                      <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
+                    <td
+                      className="px-4 py-3 flex items-center gap-2 rounded-l-xl group-hover:bg-purple-50 group-hover:text-purple-700 group-hover:shadow-md"
+                      style={{
+                        transition:
+                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)"
+                      }}
+                    >
+                      <div className="w-8 h-8 bg-gradient-to-br from-purple-300 to-blue-200 rounded-full shadow-inner flex items-center justify-center text-white font-bold transition-all duration-300 group-hover:scale-110">
+                        {item.name?.charAt(0) || ""}
+                      </div>
                       <div>
                         <p className="font-medium">{item.name}</p>
                         <p className="text-xs text-gray-500">{item.role}</p>
                       </div>
                     </td>
-                    <td className="px-4 py-3">{item.email}</td>
-                    <td className="px-4 py-3">{item.phoneNumber}</td>
-                    <td className="px-4 py-3">{item.submissionDate}</td>
+                    <td className="px-4 py-3 group-hover:bg-purple-50 group-hover:text-purple-700 group-hover:shadow-sm"
+                      style={{
+                        transition:
+                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)"
+                      }}
+                    >{item.email}</td>
+                    <td className="px-4 py-3 group-hover:bg-purple-50 group-hover:text-purple-700 group-hover:shadow-sm"
+                      style={{
+                        transition:
+                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)"
+                      }}
+                    >{item.phoneNumber}</td>
+                    <td className="px-4 py-3 group-hover:bg-purple-50 group-hover:text-purple-700 group-hover:shadow-sm"
+                      style={{
+                        transition:
+                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)"
+                      }}
+                    >{item.submissionDate}</td>
+                    <td className="px-4 py-3 group-hover:bg-purple-50 group-hover:text-purple-700 group_hover:shadow-sm"
+                      style={{
+                        transition:
+                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)"
+                      }}
+                    >{item.hiring_date}</td>
+                    <td className="px-4 py-3 group-hover:bg-purple-50 group_hover:text-purple-700 group-hover:shadow-sm"
+                      style={{
+                        transition:
+                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)"
+                      }}
+                    >{item.department}</td>
+                    <td className="px-4 py-3 group-hover:bg-purple-50 group_hover:text-purple-700 group-hover:shadow-sm"
+                      style={{
+                        transition:
+                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)"
+                      }}
+                    >{item.rate_par_month}</td>
                     <td
-                      className={`px-4 py-3 ${
-                        item.status === "Pending"
+                      className={`px-4 py-3 rounded-lg group-hover:bg-purple-50 group-hover:text-purple-700 group-hover:shadow ${
+                        item.status === "approved"
+                          ? "text-green-700 font-semibold bg-gradient-to-r from-green-100 to-green-200 shadow"
+                          : item.status === "Pending"
                           ? "text-orange-500"
-                          : item.status === "Approved"
-                          ? "text-green-600"
                           : "text-red-500"
                       }`}
+                      style={{
+                        transition:
+                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)"
+                      }}
                     >
                       {item.status}
-                    </td>
-                    <td className="px-4 py-3 flex gap-2">
-                      <button
-                        onClick={() => confirmApprove(item.key)}
-                        className="p-2 bg-purple-100 rounded-lg hover:bg-purple-200 hover:text-purple-700 hover:shadow-lg transition-all"
-                      >
-                        <Check size={16} className="text-purple-600" />
-                      </button>
-                      <button
-                        onClick={() => openDeleteModal(item.key)}
-                        className="p-2 bg-purple-100 rounded-lg hover:bg-purple-200 hover:text-purple-700 hover:shadow-lg transition-all"
-                      >
-                        <X size={16} className="text-purple-600" />
-                      </button>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="7" className="px-4 py-3 text-center text-gray-500">
+                  <td colSpan="8" className="px-4 py-3 text-center text-gray-500">
                     No data available.
                   </td>
                 </tr>
@@ -280,104 +256,9 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white rounded-lg p-6 w-96 shadow-lg">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                <Trash2 size={24} className="text-red-500" /> {/* Updated to Trash2 icon */}
-              </div>
-              <h2 className="text-lg font-semibold">Are you sure you want to Delete?</h2>
-            </div>
-            <p className="text-gray-500 text-sm mb-6">
-              Deleting this record is irreversible. Please confirm your action.
-            </p>
-            <div className="flex justify-end gap-4">
-              <button
-                onClick={closeDeleteModal}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Status Confirmation Modal */}
-      {showStatusModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white rounded-lg p-6 w-96 shadow-lg">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                <X size={24} className="text-red-500" />
-              </div>
-              <h2 className="text-lg font-semibold">
-                Are you sure you want to Accept {data.find(item => item.key === selectedRowForStatus)?.name}'s Leave Request
-              </h2>
-            </div>
-            <p className="text-gray-500 text-sm mb-6">
-              Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum
-            </p>
-            <div className="flex justify-end gap-4">
-              <button
-                onClick={() => updateStatus("Rejected")}
-                className="px-4 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-100 transition-all"
-              >
-                Reject
-              </button>
-              <button
-                onClick={() => updateStatus("Approved")}
-                className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all"
-              >
-                Approve
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Approve Confirmation Dialog */}
-      {showApproveDialog && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                <Check size={20} className="text-green-600" />
-              </div>
-              <h2 className="text-lg font-semibold">Approve Request</h2>
-            </div>
-            <p className="text-gray-500 text-sm mb-6">
-              Are you sure you want to approve this request? This action cannot be undone.
-            </p>
-            <div className="flex justify-end gap-4">
-              <button
-                className="px-4 py-2 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 transition-all"
-                onClick={cancelApprove}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all"
-                onClick={handleApprove}
-              >
-                Approve
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <footer className="mt-4 flex justify-between items-center">
+      <footer className="mt-6 flex justify-between items-center">
         <button
-          className="flex items-center gap-2 px-4 py-2 text-gray-600 rounded-lg hover:bg-purple-200 hover:text-purple-700 hover:shadow-lg transition-all"
+          className="flex items-center gap-2 px-4 py-2 text-purple-700 rounded-lg bg-purple-100 hover:bg-purple-200 hover:text-purple-900 hover:shadow-lg transition-all"
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
         >
@@ -389,9 +270,9 @@ const Home = () => {
               key={page}
               className={`px-3 py-1 rounded-lg ${
                 page === currentPage
-                  ? "bg-purple-100 text-purple-700"
-                  : "hover:bg-purple-200 hover:text-purple-700 hover:shadow-lg transition-all"
-              }`}
+                  ? "bg-gradient-to-r from-purple-400 to-blue-400 text-white shadow"
+                  : "bg-purple-50 text-purple-700 hover:bg-purple-200 hover:text-purple-900 hover:shadow"
+              } transition-all`}
               onClick={() => handlePageChange(page)}
             >
               {page}
@@ -399,7 +280,7 @@ const Home = () => {
           ))}
         </div>
         <button
-          className="flex items-center gap-2 px-4 py-2 text-gray-600 rounded-lg hover:bg-purple-200 hover:text-purple-700 hover:shadow-lg transition-all"
+          className="flex items-center gap-2 px-4 py-2 text-purple-700 rounded-lg bg-purple-100 hover:bg-purple-200 hover:text-purple-900 hover:shadow-lg transition-all"
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === Math.ceil(allData.length / 10)}
         >
