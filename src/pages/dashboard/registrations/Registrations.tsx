@@ -195,7 +195,7 @@ const Home = () => {
     );
   };
 
-  const handleViewMore = (key) => navigate("/vue-more/:id");
+  const handleViewMore = (key) => navigate("//:id");
 
   const exportToExcel = () => {
     const headers = [
@@ -360,8 +360,7 @@ const Home = () => {
               ) : profiles.length > 0 ? (
                 profiles.map((profile) => (
                   <tr key={profile.id} className="border-t hover:bg-gray-50">
-                    {/* Removed checkbox cell */
-                    }
+                   
                     <td className="px-4 py-3">
                       {profile.first_name || "-----"}
                     </td>

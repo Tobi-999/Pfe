@@ -77,7 +77,7 @@ const routes = [
   },
   {
     exact: true,
-    path: "/portfolio",
+    path: "/portfolio/",
     component: lazy(() => import("../pages/Dashboard/Home/VuePortfolio")),
     layout: lazy(() => import("../layout/Dashboard")),
     guard: lazy(() => import("../guards/SupabaseConnectionGuard")),
