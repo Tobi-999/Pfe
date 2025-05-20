@@ -220,7 +220,7 @@ export function SupaBaseConnectionProvider({ children }: AuthProviderProps) {
           user: userData,
         },
       });
-      return (window.location.href = "/login");
+      return (window.location.href = "/home");
     }
 
     dispatch({

@@ -9,22 +9,6 @@ import { createClient } from "@supabase/supabase-js"; // Import Supabase client
 import { useParams } from "react-router-dom";
 import { useAuthContext } from "../../../context";
 
-const generateValidationSchema = (fields: typeof formData) => {
-  const schema: Record<string, Yup.AnySchema> = {};
-
-  Object.keys(fields).forEach((key) => {
-    if (typeof fields[key] === "string") {
-      schema[key] = Yup.string()
-        .required(`${key} is required`)
-        .matches(/^[A-Z]/, `${key} must start with a capital letter`);
-    } else if (fields[key] === null) {
-      schema[key] = Yup.mixed().nullable();
-    }
-  });
-
-  return Yup.object().shape(schema);
-};
-
 // Initialize Supabase client
 const supabase = createClient(
   "https://jgqhkvlhqsxobscfsfkv.supabase.co",
@@ -53,7 +37,15 @@ export default function CreateEmployee() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const validationSchema = generateValidationSchema(formData); // Generate schema dynamically
+  const validationSchema = Yup.object().shape({
+    firstName: Yup.string().required("First name is required"),
+    lastName: Yup.string().required("Last name is required"),
+    email: Yup.string().required("Email is required"),
+    role: Yup.string().required("Role is required"),
+    country: Yup.string().required("Country is required"),
+    timezone: Yup.string().required("Timezone is required"),
+    bio: Yup.string().required("Bio is required"),
+  }); // Generate schema dynamically
 
   const handleChange = (
     e: React.ChangeEvent<

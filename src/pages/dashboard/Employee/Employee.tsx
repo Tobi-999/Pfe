@@ -3,17 +3,22 @@ import { Search, CloudDownload } from "lucide-react";
 import * as XLSX from "xlsx";
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = 'https://jgqhkvlhqsxobscfsfkv.supabase.co';
-const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpncWhrdmxocXN4b2JzY2ZzZmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyOTA1NjQsImV4cCI6MjA1Nzg2NjU2NH0.TX0xSmGL5tArOgwLq24UlBQit3AYNMxyCGb8B7AvRmw";
+// --- Supabase Config ---
+const supabaseUrl = "https://jgqhkvlhqsxobscfsfkv.supabase.co";
+const supabaseAnonKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpncWhrdmxocXN4b2JzY2ZzZmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyOTA1NjQsImV4cCI6MjA1Nzg2NjU2NH0.TX0xSmGL5tArOgwLq24UlBQit3AYNMxyCGb8B7AvRmw";
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// --- Main Component ---
 const Home = () => {
+  // --- State ---
   const [allData, setAllData] = useState<any[]>([]);
   const [data, setData] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectAll, setSelectAll] = useState(false);
 
+  // --- Fetch Data ---
   useEffect(() => {
     const fetchProfiles = async () => {
       const { data: profiles, error } = await supabase
@@ -21,6 +26,7 @@ const Home = () => {
         .select("*")
         .eq("role", "employee")
         .eq("verified", "approved");
+
       if (!error && profiles) {
         const mapped = profiles.map((item, idx) => ({
           key: item.id || idx + 1,
@@ -44,6 +50,7 @@ const Home = () => {
     fetchProfiles();
   }, []);
 
+  // --- Handlers ---
   const handleSearch = (e) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
@@ -63,21 +70,6 @@ const Home = () => {
     setCurrentPage(page);
   };
 
-  const toggleSelectAll = (isChecked) => {
-    setSelectAll(isChecked);
-    allData.forEach((item) => (item.isChecked = isChecked));
-    setData(allData.slice((currentPage - 1) * 10, currentPage * 10));
-  };
-
-  const toggleCheckbox = (key) => {
-    allData.forEach((item) => {
-      if (item.key === key) {
-        item.isChecked = !item.isChecked;
-      }
-    });
-    setData(allData.slice((currentPage - 1) * 10, currentPage * 10));
-  };
-
   const exportToExcel = () => {
     const worksheetData = [
       [
@@ -88,7 +80,7 @@ const Home = () => {
         "Hiring Date",
         "Department",
         "Rate/Month",
-        "Status"
+        "Status",
       ],
       ...allData.map((item) => [
         item.name,
@@ -97,7 +89,7 @@ const Home = () => {
         item.submissionDate,
         item.hiring_date,
         item.department,
-        item.rate_par_month  ,
+        item.rate_par_month,
         item.status,
       ]),
     ];
@@ -107,8 +99,10 @@ const Home = () => {
     XLSX.writeFile(workbook, "EmployeeTable.xlsx");
   };
 
+  // --- Render ---
   return (
     <div className="absolute inset-0 ml-64 p-6 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg shadow-2xl">
+      {/* Header */}
       <header className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-purple-700 drop-shadow">Home</h1>
         <div className="flex items-center gap-4">
@@ -121,10 +115,15 @@ const Home = () => {
         </div>
       </header>
 
+      {/* Search & Info */}
       <div className="mt-4 flex justify-between items-center">
         <div>
-          <h3 className="text-lg font-semibold text-gray-800">Latest Registrations</h3>
-          <p className="text-gray-400 text-xs">Keep Lorem IpsumLorem IpsumLorem Ipsum Lorem</p>
+          <h3 className="text-lg font-semibold text-gray-800">
+            Latest Registrations
+          </h3>
+          <p className="text-gray-400 text-xs">
+            Keep Lorem IpsumLorem IpsumLorem Ipsum Lorem
+          </p>
         </div>
         <div className="relative w-96">
           <input
@@ -140,16 +139,18 @@ const Home = () => {
         </div>
       </div>
 
+      {/* Table */}
       <div className="mt-6 border-none rounded-2xl overflow-hidden shadow-2xl bg-white">
         <div className="overflow-y-auto max-h-[550px]">
           <table className="w-full text-sm text-left rounded-2xl overflow-hidden">
             <thead
               className={`sticky top-0 ${
-                selectAll ? "bg-green-100 text-green-700" : "bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700"
+                selectAll
+                  ? "bg-green-100 text-green-700"
+                  : "bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700"
               } shadow-md`}
             >
               <tr>
-                {/* Removed checkbox column */}
                 <th className="px-4 py-3">Name</th>
                 <th className="px-4 py-3">Email address</th>
                 <th className="px-4 py-3">Phone Number</th>
@@ -173,14 +174,15 @@ const Home = () => {
                     style={{
                       cursor: "pointer",
                       transition:
-                        "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1), transform 0.3s cubic-bezier(0.4,0,0.2,1)"
+                        "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1), transform 0.3s cubic-bezier(0.4,0,0.2,1)",
                     }}
                   >
+                    {/* Name & Role */}
                     <td
                       className="px-4 py-3 flex items-center gap-2 rounded-l-xl group-hover:bg-purple-50 group-hover:text-purple-700 group-hover:shadow-md"
                       style={{
                         transition:
-                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)"
+                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)",
                       }}
                     >
                       <div className="w-8 h-8 bg-gradient-to-br from-purple-300 to-blue-200 rounded-full shadow-inner flex items-center justify-center text-white font-bold transition-all duration-300 group-hover:scale-110">
@@ -191,44 +193,138 @@ const Home = () => {
                         <p className="text-xs text-gray-500">{item.role}</p>
                       </div>
                     </td>
-                    <td className="px-4 py-3 group-hover:bg-purple-50 group-hover:text-purple-700 group-hover:shadow-sm"
-                      style={{
-                        transition:
-                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)"
-                      }}
-                    >{item.email}</td>
-                    <td className="px-4 py-3 group-hover:bg-purple-50 group-hover:text-purple-700 group-hover:shadow-sm"
-                      style={{
-                        transition:
-                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)"
-                      }}
-                    >{item.phoneNumber}</td>
-                    <td className="px-4 py-3 group-hover:bg-purple-50 group-hover:text-purple-700 group-hover:shadow-sm"
-                      style={{
-                        transition:
-                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)"
-                      }}
-                    >{item.submissionDate}</td>
-                    <td className="px-4 py-3 group-hover:bg-purple-50 group-hover:text-purple-700 group_hover:shadow-sm"
-                      style={{
-                        transition:
-                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)"
-                      }}
-                    >{item.hiring_date}</td>
-                    <td className="px-4 py-3 group-hover:bg-purple-50 group_hover:text-purple-700 group-hover:shadow-sm"
-                      style={{
-                        transition:
-                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)"
-                      }}
-                    >{item.department}</td>
-                    <td className="px-4 py-3 group-hover:bg-purple-50 group_hover:text-purple-700 group-hover:shadow-sm"
-                      style={{
-                        transition:
-                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)"
-                      }}
-                    >{item.rate_par_month}</td>
+                    {/* Email with Gmail icon */}
                     <td
-                      className={`px-4 py-3 rounded-lg group-hover:bg-purple-50 group-hover:text-purple-700 group-hover:shadow ${
+                      className="px-4 py-3 group-hover:bg-purple-50 group-hover:text-purple-700 group-hover:shadow-sm"
+                      style={{
+                        transition:
+                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)",
+                      }}
+                    >
+                      <div className="relative flex items-center group/email">
+                        <a
+                          href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
+                            item.email
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 underline hover:text-blue-800 transition-all duration-300 transform group-hover/email:-translate-y-1"
+                          style={{ display: "inline-block" }}
+                        >
+                          {item.email}
+                        </a>
+                        <span
+                          className="ml-2 opacity-0 translate-y-2 group-hover/email:opacity-100 group-hover/email:translate-y-0 transition-all duration-300"
+                          style={{ display: "inline-flex", alignItems: "center" }}
+                        >
+                          {/* Gmail SVG Icon - bigger size */}
+                          <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+                            <rect width="48" height="48" rx="8" fill="#fff" />
+                            <path
+                              d="M8 16v16c0 2.21 1.79 4 4 4h24c2.21 0 4-1.79 4-4V16"
+                              fill="#fff"
+                            />
+                            <path
+                              d="M8 16l16 12 16-12"
+                              stroke="#EA4335"
+                              strokeWidth="2"
+                            />
+                            <rect
+                              x="8"
+                              y="16"
+                              width="32"
+                              height="16"
+                              rx="4"
+                              stroke="#34A853"
+                              strokeWidth="2"
+                            />
+                            <path
+                              d="M8 16l16 12 16-12"
+                              stroke="#4285F4"
+                              strokeWidth="2"
+                            />
+                            <path
+                              d="M8 16v16c0 2.21 1.79 4 4 4h24c2.21 0 4-1.79 4-4V16"
+                              stroke="#FBBC05"
+                              strokeWidth="2"
+                            />
+                          </svg>
+                        </span>
+                      </div>
+                    </td>
+                    {/* Phone Number or Placeholder */}
+                    <td
+                      className="px-4 py-3 group-hover:bg-purple-50 group-hover:text-purple-700 group-hover:shadow-sm"
+                      style={{
+                        transition:
+                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)",
+                      }}
+                    >
+                      {item.phoneNumber ? (
+                        item.phoneNumber
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-gray-400 italic">
+                          <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+                            <rect width="24" height="24" rx="6" fill="#f3f4f6" />
+                            <path d="M7 7h10v10H7z" fill="#e0e7ef" />
+                            <path d="M8 8h8v8H8z" fill="#c7d2fe" />
+                            <path
+                              d="M12 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"
+                              fill="#6366f1"
+                            />
+                            <path
+                              d="M15.5 8.5l-7 7"
+                              stroke="#6366f1"
+                              strokeWidth="1.2"
+                            />
+                          </svg>
+                          <span>No phone Number</span>
+                        </span>
+                      )}
+                    </td>
+                    {/* Submission Date */}
+                    <td
+                      className="px-4 py-3 group-hover:bg-purple-50 group-hover:text-purple-700 group-hover:shadow-sm"
+                      style={{
+                        transition:
+                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)",
+                      }}
+                    >
+                      {item.submissionDate}
+                    </td>
+                    {/* Hiring Date */}
+                    <td
+                      className="px-4 py-3 group_hover:shadow-sm"
+                      style={{
+                        transition:
+                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)",
+                      }}
+                    >
+                      {item.hiring_date}
+                    </td>
+                    {/* Department */}
+                    <td
+                      className="px-4 py-3 group_hover:text-purple-700 group_hover:shadow-sm"
+                      style={{
+                        transition:
+                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)",
+                      }}
+                    >
+                      {item.department}
+                    </td>
+                    {/* Rate/Month */}
+                    <td
+                      className="px-4 py-3 group_hover:text-purple-700 group_hover:shadow-sm"
+                      style={{
+                        transition:
+                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)",
+                      }}
+                    >
+                      {item.rate_par_month}
+                    </td>
+                    {/* Status */}
+                    <td
+                      className={`px-4 py-3 rounded-lg group-hover:bg-purple-50 group-hover:text-purple-700 group_hover:shadow ${
                         item.status === "approved"
                           ? "text-green-700 font-semibold bg-gradient-to-r from-green-100 to-green-200 shadow"
                           : item.status === "Pending"
@@ -237,7 +333,7 @@ const Home = () => {
                       }`}
                       style={{
                         transition:
-                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)"
+                          "background 0.5s cubic-bezier(0.4,0,0.2,1), color 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s cubic-bezier(0.4,0,0.2,1)",
                       }}
                     >
                       {item.status}
@@ -256,6 +352,7 @@ const Home = () => {
         </div>
       </div>
 
+      {/* Pagination */}
       <footer className="mt-6 flex justify-between items-center">
         <button
           className="flex items-center gap-2 px-4 py-2 text-purple-700 rounded-lg bg-purple-100 hover:bg-purple-200 hover:text-purple-900 hover:shadow-lg transition-all"
@@ -265,7 +362,10 @@ const Home = () => {
           ← Previous
         </button>
         <div className="flex gap-2">
-          {Array.from({ length: Math.ceil(allData.length / 10) }, (_, i) => i + 1).map((page) => (
+          {Array.from(
+            { length: Math.ceil(allData.length / 10) },
+            (_, i) => i + 1
+          ).map((page) => (
             <button
               key={page}
               className={`px-3 py-1 rounded-lg ${

@@ -319,22 +319,34 @@ const Home = () => {
         </div>
       </div>
 
-      <div className="mt-4 border rounded-lg overflow-hidden">
+      <div className="mt-4 border rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-white via-purple-50 to-blue-50">
         <div className="overflow-y-auto max-h-[550px]">
-          <table className="w-full text-sm text-left">
+          <table className="w-full text-sm text-left border-separate border-spacing-0">
             <thead
-              className={`sticky top-0 ${
-                selectAll ? "bg-green-200" : "bg-gray-100"
-              } text-gray-600`}
+              className={`sticky top-0 z-10 ${
+                selectAll
+                  ? "bg-gradient-to-r from-green-200 via-green-100 to-green-50"
+                  : "bg-gradient-to-r from-purple-200 via-blue-100 to-purple-50"
+              } text-purple-900 uppercase tracking-wider shadow-md`}
             >
               <tr>
                 {/* Removed checkbox column */}
-                <th className="px-4 py-3">Name</th>
-                <th className="px-4 py-3">Email address</th>
-                <th className="px-4 py-3">Phone Number</th>
-                <th className="px-4 py-3">Submission Date</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 flex items-center gap-2">
+                <th className="px-4 py-4 font-extrabold border-b border-purple-200 text-base bg-gradient-to-r from-purple-100 to-blue-50">
+                  Name
+                </th>
+                <th className="px-4 py-4 font-extrabold border-b border-purple-200 text-base bg-gradient-to-r from-purple-100 to-blue-50">
+                  Email address
+                </th>
+                <th className="px-4 py-4 font-extrabold border-b border-purple-200 text-base bg-gradient-to-r from-purple-100 to-blue-50">
+                  Phone Number
+                </th>
+                <th className="px-4 py-4 font-extrabold border-b border-purple-200 text-base bg-gradient-to-r from-purple-100 to-blue-50">
+                  Submission Date
+                </th>
+                <th className="px-4 py-4 font-extrabold border-b border-purple-200 text-base bg-gradient-to-r from-purple-100 to-blue-50">
+                  Status
+                </th>
+                <th className="px-4 py-4 font-extrabold border-b border-purple-200 text-base bg-gradient-to-r from-purple-100 to-blue-50 flex items-center gap-2">
                   Actions
                   {selectAll && (
                     <button
@@ -352,25 +364,85 @@ const Home = () => {
                 <tr>
                   <td
                     colSpan="6"
-                    className="px-4 py-3 text-center text-gray-500"
+                    className="px-4 py-3 text-center text-gray-500 bg-white"
                   >
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500 mx-auto"></div>
                   </td>
                 </tr>
               ) : profiles.length > 0 ? (
-                profiles.map((profile) => (
-                  <tr key={profile.id} className="border-t hover:bg-gray-50">
-                   
-                    <td className="px-4 py-3">
+                profiles.map((profile, idx) => (
+                  <tr
+                    key={profile.id}
+                    className={`border-t
+                      ${idx % 2 === 0 ? "bg-white" : "bg-blue-50"}
+                    `}
+                    style={{ borderRadius: "12px" }}
+                  >
+                    <td className="px-4 py-4 font-semibold text-gray-900">
                       {profile.first_name || "-----"}
                     </td>
-                    <td className="px-4 py-3">{profile.email || "-----"}</td>
-                    <td className="px-4 py-3">
-                      {profile.phoneNumber || "-----"}
+                    <td className="px-4 py-4 text-gray-700">
+                      {profile.email ? (
+                        <a
+                          href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(profile.email)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group flex items-center gap-2 text-blue-600 hover:text-red-500 underline transition-colors duration-200"
+                        >
+                          <span className="relative flex items-center">
+                            <span className="transition-all duration-300 group-hover:scale-110 group-hover:text-red-500">
+                              {profile.email}
+                            </span>
+                            <span
+                              className="ml-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 group-hover:scale-125 transition-all duration-300"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                className="w-5 h-5 text-red-500"
+                              >
+                                <path d="M2 4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4zm2 0v.01L12 13l8-8.99V4H4zm16 2.41l-7.29 7.29a1 1 0 0 1-1.42 0L4 6.41V20h16V6.41z"/>
+                              </svg>
+                            </span>
+                          </span>
+                        </a>
+                      ) : (
+                        "-----"
+                      )}
                     </td>
-                    <td className="px-4 py-3">{profile.created_at}</td>
+                    <td className="px-4 py-4 text-gray-700 flex items-center gap-2">
+                      {profile.phoneNumber ? (
+                        profile.phoneNumber
+                      ) : (
+                        <>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4 text-gray-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M3 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm0 12a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2zm12-12a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zm0 12a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                            />
+                          </svg>
+                          <span className="italic text-gray-400">
+                            No phone number
+                          </span>
+                        </>
+                      )}
+                    </td>
                     <td
-                      className={`px-4 py-3 ${
+                      className="px-6 py-4 text-gray-500 tracking-[0.2em] rounded-lg whitespace-nowrap transition-all duration-200 font-mono text-base"
+                    >
+                      {profile.created_at}
+                    </td>
+                    <td
+                      className={`px-4 py-4 font-bold tracking-wide ${
                         profile.verified === "approved"
                           ? "text-green-600"
                           : "text-orange-500"
@@ -378,10 +450,15 @@ const Home = () => {
                     >
                       {profile.verified}
                     </td>
-                    <td className="px-4 py-3 flex gap-2">
+                    <td className="px-4 py-4 flex gap-2">
                       <button
                         onClick={() => handleViewMore(profile.id)}
-                        className="p-2 bg-purple-100 rounded-lg hover:bg-purple-200 hover:text-purple-700"
+                        className="p-2 rounded-lg shadow transition-all duration-200
+                          bg-gradient-to-tr from-purple-300 via-blue-200 to-purple-100
+                          text-purple-900 font-bold
+                          hover:from-purple-400 hover:via-blue-300 hover:to-purple-200
+                          hover:scale-110 hover:shadow-xl
+                          focus:outline-none focus:ring-2 focus:ring-purple-400"
                       >
                         <Eye size={16} />
                       </button>
@@ -389,7 +466,12 @@ const Home = () => {
                         type="primary"
                         icon={<CheckCircle className="h-4 w-4" />}
                         onClick={() => handleApprove(profile.id)}
-                        className="bg-green-500 hover:bg-green-600"
+                        className="!bg-gradient-to-r !from-green-400 !to-green-600 !text-white !font-bold
+                          !shadow-lg !border-none
+                          hover:!from-green-500 hover:!to-green-700
+                          hover:!scale-110 hover:!shadow-xl
+                          transition-all duration-200
+                          focus:!ring-2 focus:!ring-green-400"
                       >
                         Approve
                       </Button>
@@ -397,6 +479,12 @@ const Home = () => {
                         danger
                         icon={<XCircle className="h-4 w-4" />}
                         onClick={() => handleReject(profile.id)}
+                        className="!bg-gradient-to-r !from-red-400 !to-pink-500 !text-white !font-bold
+                          !shadow-lg !border-none
+                          hover:!from-red-500 hover:!to-pink-600
+                          hover:!scale-110 hover:!shadow-xl
+                          transition-all duration-200
+                          focus:!ring-2 focus:!ring-red-400"
                       >
                         Reject
                       </Button>
@@ -407,7 +495,7 @@ const Home = () => {
                 <tr>
                   <td
                     colSpan="6"
-                    className="px-4 py-3 text-center text-gray-500"
+                    className="px-4 py-3 text-center text-gray-500 bg-white"
                   >
                     No data available.
                   </td>

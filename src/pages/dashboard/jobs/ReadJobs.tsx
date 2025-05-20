@@ -178,8 +178,8 @@ function ReadJobs() {
             Members
           </button>
         )}
-        {/* Only show Apply button if job is open */}
-        {!(job.ends_at && new Date(job.ends_at) < new Date()) && (
+        {/* Only show Apply button if job is open and user is not admin */}
+        {user?.role !== "admin" && !(job.ends_at && new Date(job.ends_at) < new Date()) && (
           <button
             className="py-3 px-6 bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white font-semibold rounded-lg transition-all duration-300 hover:from-fuchsia-600 hover:via-purple-500 hover:to-pink-600 hover:shadow-xl hover:scale-105"
             onClick={() => navigate(`/jobs/apply/${id}`)}

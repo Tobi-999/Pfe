@@ -49,7 +49,7 @@ export default function Login() {
       });
       localStorage.setItem("userEmail", email);
       // Optionally, navigate after a short delay
-      // setTimeout(() => navigate("/"), 1000);
+      setTimeout(() => navigate("/home"), 1000);
     }
   };
 
