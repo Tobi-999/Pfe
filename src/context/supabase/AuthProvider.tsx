@@ -225,6 +225,7 @@ export function SupaBaseConnectionProvider({ children }: AuthProviderProps) {
 
     dispatch({
       type: Types.LOGIN,
+
       payload: {
         isAuthenticated: true,
         user: null,

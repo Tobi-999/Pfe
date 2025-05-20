@@ -72,7 +72,6 @@ export default function LeaveDashboard() {
   const [employeeName, setEmployeeName] = useState<string>("");
   const [employeeRole, setEmployeeRole] = useState<string>("");
 
-  const { user } = useAuthContext();
   // Fetch leaves from Supabase
   useEffect(() => {
     async function fetchLeaves() {
@@ -96,30 +95,7 @@ export default function LeaveDashboard() {
   }, []);
 
   // Fetch employee info from Supabase
-  useEffect(() => {
-    async function fetchProfileAndRole() {
-      // Fetch first_name from profiles
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("first_name")
-        .limit(1)
-        .single();
-      if (!profileError && profileData) {
-        setEmployeeName(profileData.first_name || "");
-      }
-
-      // Fetch role from employees
-      const { data: employeeData, error: employeeError } = await supabase
-        .from("employees")
-        .select("role")
-        .limit(1)
-        .single();
-      if (!employeeError && employeeData) {
-        setEmployeeRole(employeeData.role || "");
-      }
-    }
-    fetchProfileAndRole();
-  }, []);
+  const { user } = useAuthContext();
 
   // --- Handlers ---
   const handleApplyClick = () => setIsModalOpen(true);
@@ -146,8 +122,8 @@ export default function LeaveDashboard() {
         <ProfileSidebar
           onApplyClick={handleApplyClick}
           cardValues={cardValues}
-          employeeName={employeeName}
-          employeeRole={employeeRole}
+          employeeName={user?.first_name}
+          employeeRole={user?.role}
         />
         {isModalOpen && (
           <ApplyLeaveModal
@@ -471,15 +447,39 @@ function ProfileInfo({
 // --- Profile Actions ---
 function ProfileActions({
   onApplyClick,
-  balance,
-}: {
+}: // balance,
+{
   onApplyClick: () => void;
-  balance: any;
+  // balance: any;
 }) {
-  const totalBalance = Object.values(balance).reduce(
-    (sum: number, count: number) => sum + count,
-    0
-  );
+  // const totalBalance = Object.values(balance).reduce(
+  //   (sum: number, count: number) => sum + count,
+  //   0
+  // );
+
+  const { user } = useAuthContext();
+
+  const calculateBalance = () => {
+    if (!user?.hiring_date || !user?.rate_per_month) return 0;
+
+    const hiringDate = new Date("2024-01-01");
+    const today = new Date();
+
+    // Calculate months difference
+    const monthsDiff =
+      (today.getFullYear() - hiringDate.getFullYear()) * 12 +
+      (today.getMonth() - hiringDate?.getMonth());
+
+    // Calculate total balance based on rate per month
+    const totalBalance = monthsDiff * user?.rate_per_month;
+
+    return totalBalance;
+  };
+
+  const balance = calculateBalance();
+
+  console.log(balance);
+
   return (
     <div className="flex flex-col items-center justify-start h-full mt-8">
       <div className="bg-white text-black p-4 rounded-lg text-center shadow-lg mb-4 flex flex-col justify-between h-32 w-full">
@@ -488,7 +488,7 @@ function ProfileActions({
           <MoreVertical className="text-gray-400" />
         </div>
         <div className="flex items-center justify-between">
-          <p className="text-4xl font-bold">{totalBalance}</p>
+          <p className="text-4xl font-bold"> {balance}</p>
           <div className="w-12 h-12 flex items-center justify-center bg-green-100 rounded-full">
             <Scale className="text-green-500 w-6 h-6" />
           </div>

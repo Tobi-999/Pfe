@@ -5,7 +5,7 @@ import { useAuthContext } from "../context";
 const GuestGuard = ({ children }: { children: React.ReactElement }) => {
   const { isAuthenticated, isInitialized, user } = useAuthContext();
 
-
+  console.log({ isInitialized, isAuthenticated });
   if (isInitialized) {
     return (
       <div className="flex items-center justify-center min-h-screen">
