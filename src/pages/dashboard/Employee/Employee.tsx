@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Search, CloudDownload } from "lucide-react";
+import { Search, CloudDownload, Pencil } from "lucide-react";
 import * as XLSX from "xlsx";
 import { createClient } from "@supabase/supabase-js";
 
@@ -17,6 +17,16 @@ const Home = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectAll, setSelectAll] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editEmployee, setEditEmployee] = useState<any>(null);
+  const [editForm, setEditForm] = useState<any>({});
+  const [loadingEdit, setLoadingEdit] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [editSuccess, setEditSuccess] = useState<string | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteEmployee, setDeleteEmployee] = useState<any>(null);
+  const [loadingDelete, setLoadingDelete] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // --- Fetch Data ---
   useEffect(() => {
@@ -30,6 +40,7 @@ const Home = () => {
       if (!error && profiles) {
         const mapped = profiles.map((item, idx) => ({
           key: item.id || idx + 1,
+          id: item.id, // <-- add this line
           name: item.first_name || item.name || item.full_name || "",
           role: item.role || "Product Designer",
           email: item.email || "",
@@ -99,6 +110,112 @@ const Home = () => {
     XLSX.writeFile(workbook, "EmployeeTable.xlsx");
   };
 
+  // Edit button handler
+  const handleEditClick = (employee) => {
+    setEditEmployee(employee);
+    setEditForm({
+      name: employee.name,
+      email: employee.email,
+      phoneNumber: employee.phoneNumber,
+      hiring_date: employee.hiring_date,
+      department: employee.department,
+      rate_par_month: employee.rate_par_month,
+      // add more fields as needed
+    });
+    setEditModalOpen(true);
+    setEditError(null);
+    setEditSuccess(null);
+  };
+
+  // Edit form change handler
+  const handleEditFormChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Edit form submit handler
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setLoadingEdit(true);
+    setEditError(null);
+    setEditSuccess(null);
+
+    // Find the profile by id
+    const id = editEmployee.id; // <-- use .id instead of .key
+    // Prepare update object (map fields as needed)
+    const updateObj: any = {
+      // You may need to map 'name' to 'first_name' or 'full_name' depending on your schema
+      first_name: editForm.first_name,
+      email: editForm.email,
+      phone: editForm.phone_number,
+      hiring_date: editForm.hiring_date,
+      department: editForm.department,
+      rate_per_month: editForm.rate_par_month,
+      // add more fields as needed
+    };
+
+    const { error } = await supabase
+      .from("profiles")
+      .update(updateObj)
+      .eq("id", id); // <-- this will now always be the real id
+
+    if (error) {
+      setEditError("Failed to update employee.");
+    } else {
+      setEditSuccess("Employee updated successfully.");
+      // Update local state
+      setAllData((prev) =>
+        prev.map((item) =>
+          item.key === id
+            ? {
+                ...item,
+                ...editForm,
+              }
+            : item
+        )
+      );
+      setData((prev) =>
+        prev.map((item) =>
+          item.key === id
+            ? {
+                ...item,
+                ...editForm,
+              }
+            : item
+        )
+      );
+      setTimeout(() => {
+        setEditModalOpen(false);
+      }, 1000);
+    }
+    setLoadingEdit(false);
+  };
+
+  const handleDeleteClick = (employee) => {
+    setDeleteEmployee(employee);
+    setDeleteModalOpen(true);
+    setDeleteError(null);
+  };
+
+  const handleDeleteConfirm = async () => {
+    setLoadingDelete(true);
+    setDeleteError(null);
+    const id = deleteEmployee.id;
+    const { error } = await supabase
+      .from("profiles")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      setDeleteError("Failed to delete employee.");
+    } else {
+      setAllData((prev) => prev.filter((item) => item.id !== id));
+      setData((prev) => prev.filter((item) => item.id !== id));
+      setDeleteModalOpen(false);
+    }
+    setLoadingDelete(false);
+  };
+
   // --- Render ---
   return (
     <div className="absolute inset-0 ml-64 p-6 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg shadow-2xl">
@@ -159,6 +276,7 @@ const Home = () => {
                 <th className="px-4 py-3">Department</th>
                 <th className="px-4 py-3">Rate/Month</th>
                 <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -338,6 +456,29 @@ const Home = () => {
                     >
                       {item.status}
                     </td>
+                    {/* Edit & Delete Buttons */}
+                    <td className="px-4 py-3 flex gap-2 items-center">
+                      <button
+                        className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-1.5 rounded-lg shadow-md hover:from-blue-600 hover:to-purple-600 hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                        onClick={() => handleEditClick(item)}
+                        title="Edit Employee"
+                      >
+                        <Pencil size={18} className="opacity-80" />
+                        <span className="font-semibold tracking-wide">Edit</span>
+                      </button>
+                      <button
+                        className="flex items-center gap-2 bg-gradient-to-r from-red-500 to-orange-400 text-white px-4 py-1.5 rounded-lg shadow-md hover:from-red-600 hover:to-orange-500 hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-400"
+                        onClick={() => handleDeleteClick(item)}
+                        title="Delete Employee"
+                      >
+                        <svg width="18" height="18" fill="none" viewBox="0 0 20 20">
+                          <path d="M6 8v6a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V8" stroke="#fff" strokeWidth="1.5"/>
+                          <path d="M4 6h12" stroke="#fff" strokeWidth="1.5"/>
+                          <path d="M8 6V4a2 2 0 0 1 4 0v2" stroke="#fff" strokeWidth="1.5"/>
+                        </svg>
+                        <span className="font-semibold tracking-wide">Delete</span>
+                      </button>
+                    </td>
                   </tr>
                 ))
               ) : (
@@ -351,7 +492,172 @@ const Home = () => {
           </table>
         </div>
       </div>
-
+      {/* Edit Modal */}
+      {editModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-2xl shadow-2xl p-0 w-full max-w-lg relative animate-fade-in">
+            <div className="flex items-center justify-between px-8 pt-6 pb-2 border-b">
+              <div className="flex items-center gap-2">
+                <div className="bg-gradient-to-br from-purple-400 to-blue-400 rounded-full p-2 shadow">
+                  <Pencil size={24} className="text-white" />
+                </div>
+                <h2 className="text-xl font-bold text-purple-700">Edit Employee</h2>
+              </div>
+              <button
+                className="text-gray-400 hover:text-purple-600 text-2xl font-bold transition"
+                onClick={() => setEditModalOpen(false)}
+                title="Close"
+              >
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleEditSubmit} className="space-y-5 px-8 py-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={editForm.name || ""}
+                  onChange={handleEditFormChange}
+                  className="w-full border-2 border-purple-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all duration-200"
+                  required
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={editForm.email || ""}
+                  onChange={handleEditFormChange}
+                  className="w-full border-2 border-purple-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all duration-200"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Phone Number
+                </label>
+                <input
+                  type="text"
+                  name="phoneNumber"
+                  value={editForm.phoneNumber || ""}
+                  onChange={handleEditFormChange}
+                  className="w-full border-2 border-purple-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all duration-200"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Hiring Date
+                </label>
+                <input
+                  type="date"
+                  name="hiring_date"
+                  value={editForm.hiring_date || ""}
+                  onChange={handleEditFormChange}
+                  className="w-full border-2 border-purple-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all duration-200"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Department
+                </label>
+                <input
+                  type="text"
+                  name="department"
+                  value={editForm.department || ""}
+                  onChange={handleEditFormChange}
+                  className="w-full border-2 border-purple-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all duration-200"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Rate/Month
+                </label>
+                <input
+                  type="text"
+                  name="rate_par_month"
+                  value={editForm.rate_par_month || ""}
+                  onChange={handleEditFormChange}
+                  className="w-full border-2 border-purple-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all duration-200"
+                />
+              </div>
+              {/* Add more fields as needed */}
+              {editError && (
+                <div className="text-red-500 bg-red-50 rounded px-3 py-2">{editError}</div>
+              )}
+              {editSuccess && (
+                <div className="text-green-600 bg-green-50 rounded px-3 py-2">{editSuccess}</div>
+              )}
+              <button
+                type="submit"
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white py-2.5 rounded-lg font-semibold shadow hover:from-purple-600 hover:to-blue-600 hover:scale-105 transition-all duration-200"
+                disabled={loadingEdit}
+              >
+                <Pencil size={18} />
+                {loadingEdit ? "Saving..." : "Save Changes"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Delete Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-2xl shadow-2xl p-0 w-full max-w-md relative animate-fade-in">
+            <div className="flex items-center justify-between px-8 pt-6 pb-2 border-b">
+              <div className="flex items-center gap-2">
+                <div className="bg-gradient-to-br from-red-500 to-orange-400 rounded-full p-2 shadow">
+                  <svg width="24" height="24" fill="none" viewBox="0 0 20 20">
+                    <path d="M6 8v6a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V8" stroke="#fff" strokeWidth="1.5"/>
+                    <path d="M4 6h12" stroke="#fff" strokeWidth="1.5"/>
+                    <path d="M8 6V4a2 2 0 0 1 4 0v2" stroke="#fff" strokeWidth="1.5"/>
+                  </svg>
+                </div>
+                <h2 className="text-xl font-bold text-red-600">Delete Employee</h2>
+              </div>
+              <button
+                className="text-gray-400 hover:text-red-600 text-2xl font-bold transition"
+                onClick={() => setDeleteModalOpen(false)}
+                title="Close"
+              >
+                ×
+              </button>
+            </div>
+            <div className="px-8 py-6 space-y-3">
+              <p className="text-gray-700 mb-2">Are you sure you want to delete this employee?</p>
+              <div className="bg-red-50 rounded-lg px-4 py-3 mb-2">
+                <div><span className="font-semibold text-gray-700">Name:</span> {deleteEmployee?.name}</div>
+                <div><span className="font-semibold text-gray-700">Email:</span> {deleteEmployee?.email}</div>
+                <div><span className="font-semibold text-gray-700">Department:</span> {deleteEmployee?.department}</div>
+                {/* Add more info if needed */}
+              </div>
+              {deleteError && (
+                <div className="text-red-500 bg-red-100 rounded px-3 py-2">{deleteError}</div>
+              )}
+              <button
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-500 to-orange-400 text-white py-2.5 rounded-lg font-semibold shadow hover:from-red-600 hover:to-orange-500 hover:scale-105 transition-all duration-200"
+                onClick={handleDeleteConfirm}
+                disabled={loadingDelete}
+              >
+                {loadingDelete ? "Deleting..." : "Delete"}
+              </button>
+              <button
+                className="w-full mt-2 flex items-center justify-center gap-2 bg-gray-200 text-gray-700 py-2.5 rounded-lg font-semibold shadow hover:bg-gray-300 transition-all duration-200"
+                onClick={() => setDeleteModalOpen(false)}
+                disabled={loadingDelete}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Pagination */}
       <footer className="mt-6 flex justify-between items-center">
         <button

@@ -176,10 +176,10 @@ export default function CreateJobForm() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h2 className="text-xl font-semibold text-gray-800">
-              Personal info
+              Personal Job info
             </h2>
             <p className="text-sm text-gray-500">
-              Update your photo and personal details here.
+              Update your Job photo and personal  job details here.
             </p>
           </div>
           <div className="flex gap-3">

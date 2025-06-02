@@ -9,6 +9,7 @@ import AuthBanner from "../../../assets/authimg.png";
 import "./index.css";
 import { toast } from "sonner";
 import { useAuthContext } from "../../../context";
+import { useState } from "react";
 
 // Validation schema
 const schema = yup.object({
@@ -27,6 +28,8 @@ export default function Login() {
   } = useForm({
     resolver: yupResolver(schema),
   });
+
+  const [showPassword, setShowPassword] = useState(false);
 
   // Handle form submission
   const onSubmit = async (data: any) => {
@@ -62,15 +65,21 @@ export default function Login() {
       {/* Left: Login Form */}
       <div className="flex flex-1 flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
         <div className="w-full max-w-md">
-          <h1 className="text-3xl font-bold text-center mb-6">Log in</h1>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <h1
+            className="text-5xl md:text-7xl font-extrabold text-center mb-10 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-2xl transition-all duration-500 hover:scale-110 hover:from-pink-500 hover:to-blue-400 cursor-pointer animate-pulse"
+          >
+            Log in
+          </h1>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
             {/* Email Field */}
             <div>
-              <label className="block text-sm font-medium mb-1">Email*</label>
+              <label className="block text-lg font-semibold mb-2 bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent transition-all duration-300 hover:from-pink-500 hover:to-blue-400">
+                Email*
+              </label>
               <input
                 {...register("email")}
                 placeholder="Enter your email"
-                className="w-full p-2 border rounded-lg"
+                className="w-full p-3 rounded-xl border-2 border-blue-300 focus:border-pink-400 focus:ring-2 focus:ring-purple-300 outline-none transition-all duration-300 shadow-md bg-white/80 hover:bg-blue-50 placeholder:text-gray-400 text-lg"
               />
               {errors.email && (
                 <p className="text-red-500 text-sm mt-1">
@@ -80,15 +89,41 @@ export default function Login() {
             </div>
             {/* Password Field */}
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-lg font-semibold mb-2 bg-gradient-to-r from-pink-500 to-blue-500 bg-clip-text text-transparent transition-all duration-300 hover:from-blue-500 hover:to-purple-500">
                 Password*
               </label>
-              <input
-                type="password"
-                {...register("password")}
-                placeholder="Enter your password"
-                className="w-full p-2 border rounded-lg"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  {...register("password")}
+                  placeholder="Enter your password"
+                  className="w-full p-3 rounded-xl border-2 border-purple-300 focus:border-blue-400 focus:ring-2 focus:ring-pink-300 outline-none transition-all duration-300 shadow-md bg-white/80 hover:bg-purple-50 placeholder:text-gray-400 text-lg"
+                />
+                <button
+                  type="button"
+                  className={`absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-semibold transition-all duration-300
+                    bg-white text-gray-700 border border-gray-300 shadow-sm hover:bg-gray-100 hover:text-black focus:outline-none`}
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4.477-10-10 0-1.657.336-3.233.938-4.675M6.343 6.343A7.963 7.963 0 004 9c0 4.418 3.582 8 8 8 1.657 0 3.233-.336 4.675-.938M17.657 17.657A7.963 7.963 0 0020 15c0-4.418-3.582-8-8-8-1.657 0-3.233.336-4.675.938M3 3l18 18" />
+                      </svg>
+                      Hide
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      Show
+                    </>
+                  )}
+                </button>
+              </div>
               {errors.password && (
                 <p className="text-red-500 text-sm mt-1">
                   {errors.password.message}
@@ -97,13 +132,13 @@ export default function Login() {
             </div>
             {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
-              <label className="flex items-center">
-                <input type="checkbox" className="mr-2" />
-                <span className="text-sm">Remember for 30 days</span>
+              <label className="flex items-center cursor-pointer select-none">
+                <input type="checkbox" className="mr-2 accent-purple-500 scale-125 transition-all duration-300" />
+                <span className="text-sm font-medium text-gray-700 hover:text-blue-500 transition-colors duration-300">Remember for 30 days</span>
               </label>
               <a
                 href="/forgot-password"
-                className="text-sm text-blue-500 hover:underline"
+                className="text-sm font-semibold bg-gradient-to-r from-blue-400 to-pink-400 bg-clip-text text-transparent hover:from-pink-500 hover:to-blue-400 transition-all duration-300"
               >
                 Forgot password?
               </a>
@@ -111,26 +146,26 @@ export default function Login() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600"
+              className="w-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white p-3 rounded-xl font-bold text-lg shadow-lg hover:from-pink-500 hover:to-blue-400 hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-200"
             >
               Sign in
             </button>
           </form>
           {/* Google Sign In */}
           <div className="mt-6 text-center">
-            <button className="flex items-center justify-center w-full bg-white border border-gray-300 p-2 rounded-lg hover:bg-gray-50">
+            <button className="flex items-center justify-center w-full bg-white border-2 border-gray-300 p-3 rounded-xl shadow-md hover:bg-gray-100 transition-all duration-300 group">
               <img
                 src="https://www.google.com/images/branding/googleg/1x/googleg_standard_color_128dp.png"
                 alt="Google"
-                className="w-5 h-5 mr-2"
+                className="w-6 h-6 mr-3 group-hover:scale-110 transition-transform duration-300"
               />
-              Sign in with Google
+              <span className="font-semibold text-gray-700 group-hover:text-blue-500 transition-colors duration-300">Sign in with Google</span>
             </button>
           </div>
           {/* Sign Up Link */}
-          <p className="mt-6 text-center text-sm text-gray-600">
+          <p className="mt-6 text-center text-md text-gray-600">
             Don’t have an account?{" "}
-            <a href="/signup" className="text-blue-500 hover:underline">
+            <a href="/signup" className="font-semibold bg-gradient-to-r from-blue-400 to-pink-400 bg-clip-text text-transparent hover:from-pink-500 hover:to-blue-400 transition-all duration-300">
               Sign up
             </a>
           </p>
@@ -140,7 +175,7 @@ export default function Login() {
               href="https://twitter.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 shadow-xl transition-all duration-300 group hover:scale-110 hover:-translate-y-2 hover:from-blue-500 hover:to-blue-700"
+              className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 shadow-xl transition-all duration-300 group hover:scale-125 hover:-translate-y-2 hover:from-blue-500 hover:to-blue-700"
             >
               <svg
                 className="w-6 h-6 text-white group-hover:scale-125 transition-transform"
@@ -154,7 +189,7 @@ export default function Login() {
               href="https://facebook.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 shadow-xl transition-all duration-300 group hover:scale-110 hover:-translate-y-2 hover:from-blue-700 hover:to-blue-900"
+              className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 shadow-xl transition-all duration-300 group hover:scale-125 hover:-translate-y-2 hover:from-blue-700 hover:to-blue-900"
             >
               <svg
                 className="w-6 h-6 text-white group-hover:scale-125 transition-transform"
@@ -168,7 +203,7 @@ export default function Login() {
               href="https://linkedin.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 shadow-xl transition-all duration-300 group hover:scale-110 hover:-translate-y-2 hover:from-blue-600 hover:to-blue-800"
+              className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 shadow-xl transition-all duration-300 group hover:scale-125 hover:-translate-y-2 hover:from-blue-600 hover:to-blue-800"
             >
               <svg
                 className="w-6 h-6 text-white group-hover:scale-125 transition-transform"
@@ -189,13 +224,36 @@ export default function Login() {
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-4">
-          <h1 className="text-6xl font-bold text-white text-center leading-tight">
-            Lorem Ipsum is <br /> simply dummy text
+          <h1
+            className="text-5xl md:text-6xl font-extrabold text-center leading-tight mb-4 group"
+          >
+            <span
+              className="block bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent drop-shadow-lg transition-all duration-500
+                animate-bounce group-hover:animate-none group-hover:scale-110 group-hover:-translate-y-2 group-hover:from-pink-500 group-hover:to-blue-400"
+            >
+              Good to see you again.
+            </span>
+            <span
+              className="block mt-2 text-white/90 text-2xl md:text-3xl font-semibold transition-all duration-500
+                animate-pulse group-hover:animate-none group-hover:text-blue-200 group-hover:scale-105 group-hover:translate-x-2"
+            >
+              Stay connected with your team and track your progress.
+            </span>
+            <span
+              className="block mt-2 text-yellow-300 text-xl md:text-2xl font-medium italic transition-all duration-500
+                animate-[wiggle_1.5s_ease-in-out_infinite] group-hover:animate-none group-hover:text-yellow-400 group-hover:scale-110 group-hover:-translate-x-2"
+              style={{
+                // Custom keyframes for wiggle if not in Tailwind config
+                animationName:
+                  "wiggle, bounce",
+                animationDuration: "1.5s, 1s",
+                animationIterationCount: "infinite, 1",
+                animationTimingFunction: "ease-in-out, ease",
+              }}
+            >
+              Your growth continues here.
+            </span>
           </h1>
-          <p className="text-lg text-white text-center mt-4 max-w-2xl">
-            Lorem Ipsum is simply dummy text of the printing and typesetting
-            industry. Lorem Ipsum has been the industry's standard.
-          </p>
         </div>
         <div className="absolute bottom-20 flex items-center justify-center w-full z-10">
           <div className="flex items-center space-x-2">
