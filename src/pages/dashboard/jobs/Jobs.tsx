@@ -80,7 +80,7 @@ function JobCard({
               <img
                 src={job.picture}
                 alt={job.title}
-                className="w-full h-full object-cover rounded-lg"
+                className="w-12 h-12 object-cover rounded-lg"
               />
             )}
           </div>

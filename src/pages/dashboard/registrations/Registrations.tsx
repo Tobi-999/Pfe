@@ -57,6 +57,10 @@ const Home = () => {
     ratePerMonth: 0,
     department: "",
   });
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [selectedRowForReject, setSelectedRowForReject] = useState<
+    string | null
+  >(null);
 
   const navigate = useNavigate();
 
@@ -105,12 +109,18 @@ const Home = () => {
     }
   };
 
-  const handleReject = async (profileId: string) => {
+  const handleReject = (profileId: string) => {
+    setSelectedRowForReject(profileId);
+    setShowRejectModal(true);
+  };
+
+  const confirmReject = async () => {
+    if (!selectedRowForReject) return;
     try {
       const { error } = await supabase
         .from("profiles")
         .update({ verified: "rejected" })
-        .eq("id", profileId);
+        .eq("id", selectedRowForReject);
 
       if (error) throw error;
 
@@ -118,6 +128,8 @@ const Home = () => {
         message: "Success",
         description: "Profile rejected successfully",
       });
+      setShowRejectModal(false);
+      setSelectedRowForReject(null);
       fetchPendingProfiles(); // Refresh the list
     } catch (error) {
       console.error("Error rejecting profile:", error);
@@ -125,7 +137,14 @@ const Home = () => {
         message: "Error",
         description: "Failed to reject profile",
       });
+      setShowRejectModal(false);
+      setSelectedRowForReject(null);
     }
+  };
+
+  const cancelReject = () => {
+    setShowRejectModal(false);
+    setSelectedRowForReject(null);
   };
 
   const handleSearch = (e) => {
@@ -384,7 +403,9 @@ const Home = () => {
                     <td className="px-4 py-4 text-gray-700">
                       {profile.email ? (
                         <a
-                          href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(profile.email)}`}
+                          href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
+                            profile.email
+                          )}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="group flex items-center gap-2 text-blue-600 hover:text-red-500 underline transition-colors duration-200"
@@ -393,16 +414,14 @@ const Home = () => {
                             <span className="transition-all duration-300 group-hover:scale-110 group-hover:text-red-500">
                               {profile.email}
                             </span>
-                            <span
-                              className="ml-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 group-hover:scale-125 transition-all duration-300"
-                            >
+                            <span className="ml-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 group-hover:scale-125 transition-all duration-300">
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 viewBox="0 0 24 24"
                                 fill="currentColor"
                                 className="w-5 h-5 text-red-500"
                               >
-                                <path d="M2 4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4zm2 0v.01L12 13l8-8.99V4H4zm16 2.41l-7.29 7.29a1 1 0 0 1-1.42 0L4 6.41V20h16V6.41z"/>
+                                <path d="M2 4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4zm2 0v.01L12 13l8-8.99V4H4zm16 2.41l-7.29 7.29a1 1 0 0 1-1.42 0L4 6.41V20h16V6.41z" />
                               </svg>
                             </span>
                           </span>
@@ -436,10 +455,11 @@ const Home = () => {
                         </>
                       )}
                     </td>
-                    <td
-                      className="px-6 py-4 text-gray-500 tracking-[0.2em] rounded-lg whitespace-nowrap transition-all duration-200 font-mono text-base"
-                    >
-                      {profile.created_at}
+                    <td className="px-6 py-4 text-gray-500 tracking-[0.2em] rounded-lg whitespace-nowrap transition-all duration-200 font-mono text-base">
+                      {profile?.created_at &&
+                        new Date(profile?.created_at)
+                          ?.toISOString()
+                          ?.split("T")[0]}
                     </td>
                     <td
                       className={`px-4 py-4 font-bold tracking-wide ${
@@ -508,70 +528,93 @@ const Home = () => {
 
       {/* Accept Modal */}
       {showAcceptModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Check className="text-green-500" size={20} />
-              Confirm Approval
-            </h3>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Hiring Date
-              </label>
-              <DatePicker
-                className="w-full border rounded-md p-2"
-                onChange={(date, dateString) =>
-                  setApprovalData({ ...approvalData, hiringDate: dateString })
-                }
-              />
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30 backdrop-blur-sm">
+          <div className="relative w-full max-w-sm mx-auto bg-gradient-to-br from-white via-green-50 to-blue-50 rounded-2xl shadow-2xl border border-green-200 p-8 animate-fade-in">
+            <div className="flex flex-col items-center">
+              <span className="mb-3 animate-bounce">
+                <Check className="text-green-500 drop-shadow-lg" size={40} />
+              </span>
+              <h3 className="text-2xl font-extrabold text-green-700 mb-2 tracking-tight">
+                Approve Profile
+              </h3>
+              <p className="text-gray-700 text-center mb-7 text-base">
+                Please confirm the details before{" "}
+                <span className="font-bold text-green-600">approving</span> this
+                profile.
+              </p>
+              <div className="w-full mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Hiring Date
+                </label>
+                <DatePicker
+                  className="w-full border rounded-md p-2"
+                  onChange={(date, dateString) =>
+                    setApprovalData({ ...approvalData, hiringDate: dateString })
+                  }
+                />
+              </div>
+              <div className="w-full mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Rate Per Month
+                </label>
+                <InputNumber
+                  className="w-full border rounded-md p-2"
+                  min={0}
+                  onChange={(value) =>
+                    setApprovalData({
+                      ...approvalData,
+                      ratePerMonth: value || 0,
+                    })
+                  }
+                />
+              </div>
+              <div className="w-full mb-8">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Department
+                </label>
+                <Select
+                  className="w-full"
+                  placeholder="Select department"
+                  onChange={(value) =>
+                    setApprovalData({ ...approvalData, department: value })
+                  }
+                  options={[
+                    { value: "business", label: "business" },
+                    { value: "it", label: "it" },
+                    { value: "design", label: "design" },
+                  ]}
+                />
+              </div>
+              <div className="flex w-full justify-between gap-3">
+                <button
+                  onClick={closeAcceptModal}
+                  className="flex-1 px-0 py-0 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 font-semibold rounded-lg shadow border border-gray-200 hover:from-gray-200 hover:to-gray-300 hover:shadow-md transition-all h-11"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAccept}
+                  className="flex-1 px-0 py-0 bg-gradient-to-r from-green-500 to-blue-500 text-white font-bold rounded-lg shadow-lg border-none hover:from-green-600 hover:to-blue-600 hover:scale-105 hover:shadow-xl transition-all h-11 flex items-center justify-center gap-2"
+                  disabled={
+                    !approvalData.hiringDate ||
+                    !approvalData.ratePerMonth ||
+                    !approvalData.department
+                  }
+                >
+                  <CheckCircle size={18} className="animate-pulse" />
+                  Approve
+                </button>
+              </div>
             </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Rate Per Month
-              </label>
-              <InputNumber
-                className="w-full border rounded-md p-2"
-                min={0}
-                onChange={(value) =>
-                  setApprovalData({ ...approvalData, ratePerMonth: value || 0 })
-                }
-              />
-            </div>
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Department
-              </label>
-              <Select
-                className="w-full"
-                placeholder="Select department"
-                onChange={(value) =>
-                  setApprovalData({ ...approvalData, department: value })
-                }
-                options={[
-                  { value: "business", label: "business" },
-                  { value: "it", label: "it" },
-                  { value: "design", label: "design" },
-                ]}
-              />
-            </div>
-            <div className="flex justify-end gap-4">
-              <button
-                onClick={closeAcceptModal}
-                className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg transition-all hover:bg-gray-100"
+            <div className="absolute -top-4 -right-4 bg-white rounded-full shadow-lg p-1">
+              <svg
+                width="32"
+                height="32"
+                fill="none"
+                className="text-green-200"
               >
-                Cancel
-              </button>
-              <button
-                onClick={handleAccept}
-                className="px-4 py-2 bg-green-500 text-white rounded-lg transition-all hover:bg-green-600"
-                disabled={
-                  !approvalData.hiringDate ||
-                  !approvalData.ratePerMonth ||
-                  !approvalData.department
-                }
-              >
-                Approve
-              </button>
+                <circle cx="16" cy="16" r="16" fill="currentColor" />
+              </svg>
             </div>
           </div>
         </div>
@@ -604,6 +647,51 @@ const Home = () => {
               >
                 Delete
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject Modal */}
+      {showRejectModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30 backdrop-blur-sm">
+          <div className="relative w-full max-w-sm mx-auto bg-gradient-to-br from-white via-red-50 to-purple-50 rounded-2xl shadow-2xl border border-red-200 p-8 animate-fade-in">
+            <div className="flex flex-col items-center">
+              <span className="mb-3 animate-bounce">
+                <XCircle className="text-red-500 drop-shadow-lg" size={40} />
+              </span>
+              <h3 className="text-2xl font-extrabold text-red-600 mb-2 tracking-tight">
+                Reject Profile
+              </h3>
+              <p className="text-gray-700 text-center mb-7 text-base">
+                Are you sure you want to{" "}
+                <span className="font-bold text-red-500">reject</span> this
+                profile?
+                <br />
+                <span className="text-xs text-gray-400">
+                  This action cannot be undone.
+                </span>
+              </p>
+              <div className="flex w-full justify-between gap-3">
+                <button
+                  onClick={cancelReject}
+                  className="flex-1 px-0 py-0 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 font-semibold rounded-lg shadow border border-gray-200 hover:from-gray-200 hover:to-gray-300 hover:shadow-md transition-all h-11"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmReject}
+                  className="flex-1 px-0 py-0 bg-gradient-to-r from-red-500 to-pink-500 text-white font-bold rounded-lg shadow-lg border-none hover:from-red-600 hover:to-pink-600 hover:scale-105 hover:shadow-xl transition-all h-11 flex items-center justify-center gap-2"
+                >
+                  <XCircle size={18} className="animate-pulse" />
+                  Reject
+                </button>
+              </div>
+            </div>
+            <div className="absolute -top-4 -right-4 bg-white rounded-full shadow-lg p-1">
+              <svg width="32" height="32" fill="none" className="text-red-200">
+                <circle cx="16" cy="16" r="16" fill="currentColor" />
+              </svg>
             </div>
           </div>
         </div>

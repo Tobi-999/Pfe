@@ -142,7 +142,6 @@ export default function CreateJobForm() {
       }
 
       if (id) {
-        // Update existing job
         const { error: updateError } = await supabase
           .from("jobs")
           .update({
@@ -152,7 +151,6 @@ export default function CreateJobForm() {
             picture: imageUrl,
             department: data.department,
             ends_at: data.ends_at,
-            // updated_at: new Date().toISOString(),
           })
           .eq("id", id);
 
@@ -208,10 +206,10 @@ export default function CreateJobForm() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h2 className="text-xl font-semibold text-gray-800">
-              Add job info
+              Personal Job info
             </h2>
             <p className="text-sm text-gray-500">
-              add job essential information for employees
+              Update your Job photo and personal job details here.
             </p>
           </div>
           <div className="flex gap-3">

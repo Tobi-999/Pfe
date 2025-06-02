@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Search, CloudDownload, Check, X, Trash2 } from "lucide-react";
+import {
+  Search,
+  CloudDownload,
+  Check,
+  X,
+  Trash2,
+  Sun,
+  AlertTriangle,
+  Lock,
+  BriefcaseMedical,
+} from "lucide-react";
 import * as XLSX from "xlsx";
 import { createClient } from "@supabase/supabase-js";
 import { useAuthContext } from "../../../context";
@@ -9,18 +19,83 @@ const supabaseUrl = "https://jgqhkvlhqsxobscfsfkv.supabase.co";
 const supabaseKey =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpncWhrdmxocXN4b2JzY2ZzZmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyOTA1NjQsImV4cCI6MjA1Nzg2NjU2NH0.TX0xSmGL5tArOgwLq24UlBQit3AYNMxyCGb8B7AvRmw";
 const supabase = createClient(supabaseUrl, supabaseKey);
- 
+
 // --- Utility Functions ---
 const getDuration = (start, end) => {
   const startDate = new Date(start);
   const endDate = new Date(end);
-  return Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + " days";
+  return (
+    Math.abs(Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24))) + " days"
+  );
 };
 
 const getStatusColor = (status) => {
   if (status === "Pending") return "text-orange-500";
   if (status === "Rejected") return "text-red-500";
   return "text-green-600";
+};
+
+// Icon for leave type
+const getLeaveTypeIcon = (type) => {
+  switch ((type || "").toLowerCase()) {
+    case "sick":
+      return (
+        <>
+          <BriefcaseMedical
+            size={18}
+            className="inline-block mr-1 text-[#e11d48]"
+            title="Sick"
+          />
+          <span className="text-[#e11d48] font-semibold">Sick</span>
+        </>
+      );
+    case "vacation":
+      return (
+        <>
+          <Sun
+            size={18}
+            className="inline-block mr-1 text-[#facc15]"
+            title="Vacation"
+          />
+          <span className="text-[#facc15] font-semibold">Vacation</span>
+        </>
+      );
+    case "personal":
+      return (
+        <>
+          <Lock
+            size={18}
+            className="inline-block mr-1 text-[#3b82f6]"
+            title="Personal"
+          />
+          <span className="text-[#3b82f6] font-semibold">Personal</span>
+        </>
+      );
+    case "emergency":
+      return (
+        <>
+          <AlertTriangle
+            size={18}
+            className="inline-block mr-1 text-[#ef4444]"
+            title="Emergency"
+          />
+          <span className="text-[#ef4444] font-semibold">Emergency</span>
+        </>
+      );
+    default:
+      return (
+        <>
+          <Sun
+            size={18}
+            className="inline-block mr-1 text-[#22c55e]"
+            title="Other"
+          />
+          <span className="text-[#22c55e] font-semibold">
+            {type || "Other"}
+          </span>
+        </>
+      );
+  }
 };
 
 // --- Dialog Components ---
@@ -274,7 +349,7 @@ const Leaves = () => {
       {/* Subheader */}
       <p className="text-gray-500 text-sm">Latest Leaves Request</p>
       <p className="text-gray-400 text-xs">
-        Keep Lorem IpsumLorem IpsumLorem Ipsum Lorem
+        Manage and review all employee leave requests below.
       </p>
 
       {/* Search */}
@@ -303,17 +378,17 @@ const Leaves = () => {
               } transition-colors`}
             >
               <tr>
-                <th className="px-4 py-3">
+                {/* <th className="px-4 py-3">
                   <input
                     type="checkbox"
                     className="w-4 h-4"
                     checked={selectAll}
                     onChange={(e) => toggleSelectAll(e.target.checked)}
                   />
-                </th>
+                </th> */}
                 <th className="px-4 py-3">Name</th>
                 <th className="px-4 py-3">Leave Type</th>
-                <th className="px-4 py-3">Start Date</th>
+                <th className="px-4 py-3">Start Date </th>
                 <th className="px-4 py-3">End Date</th>
                 <th className="px-4 py-3">Duration</th>
                 <th className="px-4 py-3">Status</th>
@@ -344,14 +419,14 @@ const Leaves = () => {
                     key={item.id}
                     className="border-t hover:bg-gray-50 transition-colors"
                   >
-                    <td className="px-4 py-3">
+                    {/* <td className="px-4 py-3">
                       <input
                         type="checkbox"
                         className="w-4 h-4"
                         checked={item.isChecked || false}
                         onChange={() => toggleCheckbox(item.id)}
                       />
-                    </td>
+                    </td> */}
                     <td className="px-4 py-3 flex items-center gap-2">
                       <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
                       <div>
@@ -359,7 +434,7 @@ const Leaves = () => {
                         <p className="text-xs text-gray-500">{item.role}</p>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-green-600">🌿 {item.type}</td>
+                    <td className="px-4 py-3">{getLeaveTypeIcon(item.type)}</td>
                     <td className="px-4 py-3">{item.from}</td>
                     <td className="px-4 py-3">{item.to}</td>
                     <td className="px-4 py-3">{item.duration} </td>
@@ -387,7 +462,7 @@ const Leaves = () => {
               ) : (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={7}
                     className="px-4 py-3 text-center text-gray-500"
                   >
                     No data available.
