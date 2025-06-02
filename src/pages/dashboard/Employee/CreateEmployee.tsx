@@ -164,9 +164,9 @@ export default function CreateEmployee() {
         className="bg-white p-8 rounded-lg space-y-6"
       >
         <div>
-          <h2 className="text-lg font-semibold mb-2">Personal info</h2>
+          <h2 className="text-lg font-semibold mb-2">Add Jobs Info</h2>
           <p className="text-sm text-gray-500 mb-4">
-            Update your photo and personal details here.
+            .
           </p>
           <hr className="border-gray-300 mb-4" />
           <div className="flex items-center gap-6">

@@ -11,9 +11,11 @@ import {
 } from "lucide-react";
 import { useAuthContext } from "../context";
 import { createClient } from "@supabase/supabase-js";
+import UserAvatar from "../assets/avatar.jpg";
 
-const supabaseUrl =  'https://jgqhkvlhqsxobscfsfkv.supabase.co';
-const supabaseAnonKey =   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpncWhrdmxocXN4b2JzY2ZzZmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyOTA1NjQsImV4cCI6MjA1Nzg2NjU2NH0.TX0xSmGL5tArOgwLq24UlBQit3AYNMxyCGb8B7AvRmw";
+const supabaseUrl = "https://jgqhkvlhqsxobscfsfkv.supabase.co";
+const supabaseAnonKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpncWhrdmxocXN4b2JzY2ZzZmt2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyOTA1NjQsImV4cCI6MjA1Nzg2NjU2NH0.TX0xSmGL5tArOgwLq24UlBQit3AYNMxyCGb8B7AvRmw";
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const Sidebar = () => {
@@ -71,16 +73,30 @@ const Sidebar = () => {
         <ul className="space-y-4">
           <li className={`${baseLinkClass} ${hoverClass}`}>
             <Home size={20} className={iconClass + " " + activeClass} />
-            <a href="/home" className="transition-all duration-200 group-hover:font-bold">Home</a>
+            <a
+              href="/home"
+              className="transition-all duration-200 group-hover:font-bold"
+            >
+              Home
+            </a>
           </li>
           <li className={`${baseLinkClass} ${hoverClass}`}>
-            <ClipboardList size={20} className={iconClass + " " + activeClass} />
-            <a href="/registrations" className="transition-all duration-200 group-hover:font-bold">Registrations</a>
+            <ClipboardList
+              size={20}
+              className={iconClass + " " + activeClass}
+            />
+            <a
+              href="/registrations"
+              className="transition-all duration-200 group-hover:font-bold"
+            >
+              Registrations
+            </a>
             <span
               className="absolute right-0 top-0 bg-gradient-to-r from-green-400 to-green-600 text-white text-xs font-bold rounded-full px-2 py-0.5 animate-pulse shadow-lg group-hover:scale-110 group-hover:ring-2 group-hover:ring-green-300 transition-all"
               style={{
                 boxShadow: "0 0 8px 2px #22c55e55",
-                transition: "background 0.4s, color 0.4s, box-shadow 0.4s, transform 0.3s",
+                transition:
+                  "background 0.4s, color 0.4s, box-shadow 0.4s, transform 0.3s",
               }}
             >
               {regCount}
@@ -88,19 +104,39 @@ const Sidebar = () => {
           </li>
           <li className={`${baseLinkClass} ${hoverClass}`}>
             <UserPlus size={20} className={iconClass + " " + activeClass} />
-            <a href="/leaves" className="transition-all duration-200 group-hover:font-bold">Leaves</a>
+            <a
+              href="/leaves"
+              className="transition-all duration-200 group-hover:font-bold"
+            >
+              Leaves
+            </a>
           </li>
           <li className={`${baseLinkClass} ${hoverClass}`}>
             <Users size={20} className={iconClass + " " + activeClass} />
-            <a href="/employee" className="transition-all duration-200 group-hover:font-bold">Employee</a>
+            <a
+              href="/employee"
+              className="transition-all duration-200 group-hover:font-bold"
+            >
+              Employee
+            </a>
           </li>
           <li className={`${baseLinkClass} ${hoverClass}`}>
             <Briefcase size={20} className={iconClass + " " + activeClass} />
-            <a href="/jobs" className="transition-all duration-200 group-hover:font-bold">Jobs</a>
+            <a
+              href="/jobs"
+              className="transition-all duration-200 group-hover:font-bold"
+            >
+              Jobs
+            </a>
           </li>
           <li className={`${baseLinkClass} ${hoverClass}`}>
             <CheckCircle size={20} className={iconClass + " " + activeClass} />
-            <a href="/recordings" className="transition-all duration-200 group-hover:font-bold">Recordings</a>
+            <a
+              href="/recordings"
+              className="transition-all duration-200 group-hover:font-bold"
+            >
+              Recordings
+            </a>
           </li>
         </ul>
       );
@@ -109,15 +145,30 @@ const Sidebar = () => {
         <ul className="space-y-4">
           <li className={`${baseLinkClass} ${hoverClass}`}>
             <Home size={20} className={iconClass + " " + activeClass} />
-            <a href="/users" className="transition-all duration-200 group-hover:font-bold">Home</a>
+            <a
+              href="/users"
+              className="transition-all duration-200 group-hover:font-bold"
+            >
+              Home
+            </a>
           </li>
           <li className={`${baseLinkClass} ${hoverClass}`}>
             <UserPlus size={20} className={iconClass + " " + activeClass} />
-            <a href="/leaves" className="transition-all duration-200 group-hover:font-bold">Leaves</a>
+            <a
+              href="/leaves"
+              className="transition-all duration-200 group-hover:font-bold"
+            >
+              Leaves
+            </a>
           </li>
           <li className={`${baseLinkClass} ${hoverClass}`}>
             <Briefcase size={20} className={iconClass + " " + activeClass} />
-            <a href="/jobs" className="transition-all duration-200 group-hover:font-bold">Jobs</a>
+            <a
+              href="/jobs"
+              className="transition-all duration-200 group-hover:font-bold"
+            >
+              Jobs
+            </a>
           </li>
         </ul>
       );
@@ -126,7 +177,12 @@ const Sidebar = () => {
         <ul className="space-y-4">
           <li className={`${baseLinkClass} ${hoverClass}`}>
             <Briefcase size={20} className={iconClass + " " + activeClass} />
-            <a href="/jobs" className="transition-all duration-200 group-hover:font-bold">Jobs</a>
+            <a
+              href="/jobs"
+              className="transition-all duration-200 group-hover:font-bold"
+            >
+              Jobs
+            </a>
           </li>
         </ul>
       );
@@ -146,21 +202,31 @@ const Sidebar = () => {
       {/* Settings Button */}
       <div className="mt-auto">
         <button className="w-full flex items-center space-x-3 p-3 bg-white text-purple-600 rounded-lg hover:bg-gradient-to-r hover:from-purple-200 hover:to-blue-100 hover:text-purple-800 hover:shadow-lg transition-all duration-200 active:bg-purple-100 active:text-black">
-          <Settings size={20} className="active:text-black transition-all duration-200 group-hover:text-purple-700 group-hover:scale-110" />
-          <a href="/settings" className="transition-all duration-200 group-hover:font-bold">Settings</a>
+          <Settings
+            size={20}
+            className="active:text-black transition-all duration-200 group-hover:text-purple-700 group-hover:scale-110"
+          />
+          <a
+            href="/settings"
+            className="transition-all duration-200 group-hover:font-bold"
+          >
+            Settings
+          </a>
         </button>
       </div>
 
       {/* User Info */}
       <div className="mt-4 flex items-center space-x-3">
         <img
-          src="https://via.placeholder.com/40"
+          src={user?.profile_pic_url || UserAvatar}
           alt="User Avatar"
           className="w-10 h-10 rounded-full border-2 border-purple-200 hover:border-purple-500 transition-all duration-200"
         />
         <div className="flex items-center space-x-2">
           <div>
-            <p className="font-semibold text-gray-800 group-hover:text-purple-700 transition-all duration-200">{user?.first_name}</p>
+            <p className="font-semibold text-gray-800 group-hover:text-purple-700 transition-all duration-200">
+              {user?.first_name}
+            </p>
             <p
               className="text-sm text-gray-500 truncate max-w-[150px]"
               title={user.email}

@@ -18,6 +18,13 @@ const routes = [
   },
   {
     exact: true,
+    path: "/jobs/edit/:id",
+    component: lazy(() => import("../pages/Dashboard/jobs/AddJob")),
+    layout: lazy(() => import("../layout/Dashboard")),
+    guard: lazy(() => import("../guards/SupabaseConnectionGuard")),
+  },
+  {
+    exact: true,
     path: "/vue-more/:id",
     component: lazy(() => import("../pages/Dashboard/jobs/ReadJobs")),
     layout: lazy(() => import("../layout/Dashboard")),
@@ -97,8 +104,6 @@ const routes = [
     layout: lazy(() => import("../layout/Dashboard")),
     guard: lazy(() => import("../guards/SupabaseConnectionGuard")),
   },
-   
-
 ];
 
 export default routes;

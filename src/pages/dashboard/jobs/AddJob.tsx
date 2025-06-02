@@ -8,11 +8,33 @@ import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
+interface JobFormData {
+  jobName: string;
+  description: string;
+  openSeats: number;
+  avatar: FileList | null;
+  previewUrl: string | null;
+  department: "it" | "business" | "design";
+  ends_at: string;
+}
+
+interface JobData {
+  id: string;
+  title: string;
+  description: string;
+  number_of_seats: number;
+  picture: string | null;
+  department: string;
+  ends_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
 const schema = yup.object().shape({
   jobName: yup.string().required("Job name is required"),
   description: yup
     .string()
-    .max((500), "Description must be at most 500 characters")
+    .max(500, "Description must be at most 500 characters")
     .required("Description is required"),
   openSeats: yup
     .number()
@@ -43,6 +65,7 @@ export default function CreateJobForm() {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [jobData, setJobData] = useState<JobData | null>(null);
 
   const {
     register,
@@ -51,7 +74,7 @@ export default function CreateJobForm() {
     setValue,
     formState: { errors },
     reset,
-  } = useForm({
+  } = useForm<JobFormData>({
     resolver: yupResolver(schema),
     defaultValues: {
       jobName: "",
@@ -59,7 +82,7 @@ export default function CreateJobForm() {
       openSeats: 1,
       avatar: null,
       previewUrl: null,
-      department: "",
+      department: "" as "it" | "business" | "design",
       ends_at: "",
     },
   });
@@ -71,32 +94,40 @@ export default function CreateJobForm() {
     const fetchJob = async () => {
       if (!id) return;
       setLoading(true);
-      const { data, error } = await supabase
-        .from("jobs")
-        .select("*")
-        .eq("id", id)
-        .single();
-      setLoading(false);
-      if (error || !data) {
+      try {
+        const { data, error } = await supabase
+          .from("jobs")
+          .select("*")
+          .eq("id", id)
+          .single();
+
+        if (error) throw error;
+        if (!data) throw new Error("No job found");
+
+        setJobData(data);
+        setValue("jobName", data.title || "");
+        setValue("description", data.description || "");
+        setValue("openSeats", data.number_of_seats || 1);
+        setValue("department", data.department as "it" | "business" | "design");
+        setValue("ends_at", data.ends_at ? data.ends_at.slice(0, 10) : "");
+        setValue("avatar", null);
+        setValue("previewUrl", data.picture || null);
+      } catch (error) {
+        console.error("Error fetching job:", error);
         message.error("Failed to fetch job data");
-        return;
+        navigate("/jobs");
+      } finally {
+        setLoading(false);
       }
-      setValue("jobName", data.title || "");
-      setValue("description", data.description || "");
-      setValue("openSeats", data.number_of_seats || 1);
-      setValue("department", data.department || "");
-      setValue("ends_at", data.ends_at ? data.ends_at.slice(0, 10) : "");
-      setValue("avatar", null);
-      setValue("previewUrl", data.picture || null);
     };
     fetchJob();
-    // eslint-disable-next-line
-  }, [id, setValue]);
+  }, [id, setValue, navigate]);
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: JobFormData) => {
     try {
       setLoading(true);
       let imageUrl = data.previewUrl || null;
+
       if (data.avatar?.[0]) {
         const file = data.avatar[0];
         const fileExt = file.name.split(".").pop();
@@ -121,6 +152,7 @@ export default function CreateJobForm() {
             picture: imageUrl,
             department: data.department,
             ends_at: data.ends_at,
+            // updated_at: new Date().toISOString(),
           })
           .eq("id", id);
 
@@ -134,7 +166,7 @@ export default function CreateJobForm() {
             description: data.description,
             number_of_seats: data.openSeats,
             picture: imageUrl,
-            created_at: new Date(),
+            // created_at: new Date().toISOString(),
             department: data.department,
             ends_at: data.ends_at,
           },
@@ -146,12 +178,12 @@ export default function CreateJobForm() {
       if (!id) {
         reset();
       }
-      setLoading(false);
       navigate("/jobs");
     } catch (error) {
-      setLoading(false);
       console.error("Error creating/updating job:", error);
       message.error("Failed to save job");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -176,10 +208,10 @@ export default function CreateJobForm() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h2 className="text-xl font-semibold text-gray-800">
-              Personal info
+              Add job info
             </h2>
             <p className="text-sm text-gray-500">
-              Update your photo and personal details here.
+              add job essential information for employees
             </p>
           </div>
           <div className="flex gap-3">
@@ -317,7 +349,9 @@ export default function CreateJobForm() {
               <option value="design">Design</option>
             </select>
             {errors.department && (
-              <p className="text-sm text-red-500">{errors.department.message}</p>
+              <p className="text-sm text-red-500">
+                {errors.department.message}
+              </p>
             )}
           </div>
 

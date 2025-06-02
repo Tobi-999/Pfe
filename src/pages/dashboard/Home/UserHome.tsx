@@ -12,6 +12,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { Toaster, toast } from "sonner";
 import { useAuthContext } from "../../../context";
+import UserAvatar from "../../../assets/avatar.jpg";
 
 // --- Types ---
 type LeaveType = "Vacation" | "Sick" | "Casual" | "Personal";
@@ -419,10 +420,12 @@ function ProfileInfo({
   employeeName: string;
   employeeRole: string;
 }) {
+  const { user } = useAuthContext();
+  console.log({ user });
   return (
     <div>
       <img
-        src=""
+        src={user?.profile_pic_url || UserAvatar}
         alt="Profile"
         className="w-40 h-40 rounded-full object-cover mx-auto mb-4 border-4 border-white shadow-lg shadow-black-500/50"
       />

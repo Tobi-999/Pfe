@@ -59,14 +59,16 @@ function JobCard({
         transition:
           "transform 0.5s cubic-bezier(0.22,1,0.36,1), box-shadow 0.5s cubic-bezier(0.22,1,0.36,1), background 0.5s cubic-bezier(0.22,1,0.36,1), border 0.5s cubic-bezier(0.22,1,0.36,1)",
       }}
-      onMouseMove={e => {
+      onMouseMove={(e) => {
         const card = e.currentTarget;
         const rect = card.getBoundingClientRect();
         const x = e.clientX - rect.left - rect.width / 2;
         const y = e.clientY - rect.top - rect.height / 2;
-        card.style.transform = `rotateY(${x / 18}deg) rotateX(${-y / 18}deg) scale(1.04)`;
+        card.style.transform = `rotateY(${x / 18}deg) rotateX(${
+          -y / 18
+        }deg) scale(1.04)`;
       }}
-      onMouseLeave={e => {
+      onMouseLeave={(e) => {
         const card = e.currentTarget;
         card.style.transform = "";
       }}
@@ -93,7 +95,7 @@ function JobCard({
             <>
               <Pencil
                 className="w-5 h-5 text-purple-500 cursor-pointer"
-                onClick={() => navigate("/jobs/create")}
+                onClick={() => navigate(`/jobs/edit/${job.id}`)}
               />
               <Trash2
                 className="w-5 h-5 text-purple-500 cursor-pointer"
@@ -144,12 +146,14 @@ export default function JobListing() {
   useEffect(() => {
     // Fetch user role from profiles
     const fetchRole = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
       const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
         .single();
       if (!error && data) {
         setRole(data.role);
@@ -241,9 +245,11 @@ export default function JobListing() {
               onClick={() => handleCategoryClick(category)}
               className={`relative px-4 py-1 mx-1 my-1 cursor-pointer rounded-lg transition-all duration-300
                 backdrop-blur-md bg-white/40 shadow-md
-                ${selectedCategory === category
-                  ? "text-purple-800 font-bold scale-110 shadow-lg ring-2 ring-purple-300"
-                  : "text-gray-500 hover:text-purple-600 hover:scale-105"}
+                ${
+                  selectedCategory === category
+                    ? "text-purple-800 font-bold scale-110 shadow-lg ring-2 ring-purple-300"
+                    : "text-gray-500 hover:text-purple-600 hover:scale-105"
+                }
               `}
               style={{
                 display: "inline-block",
@@ -257,9 +263,11 @@ export default function JobListing() {
               {category}
               <span
                 className={`absolute left-1/2 -bottom-1 w-4/5 h-1 rounded-full transition-all duration-500
-                  ${selectedCategory === category
-                    ? "bg-gradient-to-r from-purple-500 to-pink-500 scale-x-100 animate-bounce-short"
-                    : "bg-transparent scale-x-0"}
+                  ${
+                    selectedCategory === category
+                      ? "bg-gradient-to-r from-purple-500 to-pink-500 scale-x-100 animate-bounce-short"
+                      : "bg-transparent scale-x-0"
+                  }
                 `}
                 style={{
                   transform:
